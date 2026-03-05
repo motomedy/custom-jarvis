@@ -19,7 +19,15 @@ from tools.duckduckgo import duckduckgo_search_tool
 from tools.matrix import matrix_mode
 from tools.screenshot import take_screenshot
 
+# Imports for the todos
+from tools.todo import add_todo, remove_todo, complete_todo, list_todos
+
 load_dotenv()
+
+try:
+    from jarvis_gui import post
+except ImportError:
+    def post(event, data=None): pass
 
 MIC_INDEX = None
 TRIGGER_WORD = "jarvis"
@@ -39,7 +47,7 @@ llm = ChatOllama(model="qwen3:1.7b", reasoning=False)
 # llm = ChatOpenAI(model="gpt-4o-mini", api_key=api_key, organization=org_id) for openai
 
 # Tool list
-tools = [get_time, arp_scan_terminal, read_text_from_latest_image, duckduckgo_search_tool, matrix_mode, take_screenshot]
+tools = [get_time, arp_scan_terminal, read_text_from_latest_image, duckduckgo_search_tool, matrix_mode, take_screenshot, add_todo, remove_todo, complete_todo, list_todos]
 
 # Tool-calling prompt
 prompt = ChatPromptTemplate.from_messages(
@@ -60,6 +68,8 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 # TTS setup
 def speak_text(text: str):
+    post("status", "speaking")
+    post("log", ("jarvis", text))
     try:
         engine = pyttsx3.init()
         for voice in engine.getProperty("voices"):
@@ -73,6 +83,8 @@ def speak_text(text: str):
         time.sleep(0.3)
     except Exception as e:
         logging.error(f"❌ TTS failed: {e}")
+    finally:
+        post("status", "idle")
 
 
 # Main interaction loop
@@ -86,6 +98,7 @@ def write():
             while True:
                 try:
                     if not conversation_mode:
+                        post("status", "idle")
                         logging.info("🎤 Listening for wake word...")
                         audio = recognizer.listen(source, timeout=10)
                         transcript = recognizer.recognize_google(audio)
@@ -93,16 +106,22 @@ def write():
 
                         if TRIGGER_WORD.lower() in transcript.lower():
                             logging.info(f"🗣 Triggered by: {transcript}")
+                            # Wake word detected, entering convo mode
+                            post("log", ("user", transcript))
                             speak_text("Yes sir?")
                             conversation_mode = True
                             last_interaction_time = time.time()
                         else:
                             logging.debug("Wake word not detected, continuing...")
                     else:
+                        post("status", "listening")
                         logging.info("🎤 Listening for next command...")
                         audio = recognizer.listen(source, timeout=10)
                         command = recognizer.recognize_google(audio)
                         logging.info(f"📥 Command: {command}")
+                        
+                        post("log", ("user", command))
+                        post("status", "thinking")
 
                         logging.info("🤖 Sending command to agent...")
                         response = executor.invoke({"input": command})
