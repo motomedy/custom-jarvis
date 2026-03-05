@@ -1,0 +1,78 @@
+{
+    "version": "1.1.408",
+    "time": "1772736045047",
+    "generalDiagnostics": [
+        {
+            "file": "c:\\Projects\\passion_projects\\jarvis\\jarvis\\main.py",
+            "severity": "error",
+            "message": "\"object\" is not iterable\nÂ Â \"__iter__\" method not defined",
+            "range": {
+                "start": {
+                    "line": 74,
+                    "character": 21
+                },
+                "end": {
+                    "line": 74,
+                    "character": 49
+                }
+            },
+            "rule": "reportGeneralTypeIssues"
+        },
+        {
+            "file": "c:\\Projects\\passion_projects\\jarvis\\jarvis\\main.py",
+            "severity": "error",
+            "message": "Cannot access attribute \"recognize_google\" for class \"Recognizer\"\nÂ Â Attribute \"recognize_google\" is unknown",
+            "range": {
+                "start": {
+                    "line": 103,
+                    "character": 48
+                },
+                "end": {
+                    "line": 103,
+                    "character": 64
+                }
+            },
+            "rule": "reportAttributeAccessIssue"
+        },
+        {
+            "file": "c:\\Projects\\passion_projects\\jarvis\\jarvis\\main.py",
+            "severity": "error",
+            "message": "Cannot access attribute \"recognize_google\" for class \"Recognizer\"\nÂ Â Attribute \"recognize_google\" is unknown",
+            "range": {
+                "start": {
+                    "line": 119,
+                    "character": 45
+                },
+                "end": {
+                    "line": 119,
+                    "character": 61
+                }
+            },
+            "rule": "reportAttributeAccessIssue"
+        },
+        {
+            "file": "c:\\Projects\\passion_projects\\jarvis\\jarvis\\main.py",
+            "severity": "error",
+            "message": "Operator \"-\" not supported for types \"float\" and \"float | None\"\nÂ Â Operator \"-\" not supported for types \"float\" and \"None\"",
+            "range": {
+                "start": {
+                    "line": 142,
+                    "character": 28
+                },
+                "end": {
+                    "line": 142,
+                    "character": 63
+                }
+            },
+            "rule": "reportOperatorIssue"
+        }
+    ],
+    "summary": {
+        "filesAnalyzed": 1,
+        "errorCount": 4,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 2.94
+    }
+}
+

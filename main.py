@@ -72,7 +72,8 @@ def speak_text(text: str):
     post("log", ("jarvis", text))
     try:
         engine = pyttsx3.init()
-        for voice in engine.getProperty("voices"):
+        # pyright doesn't know the exact type returned by getProperty
+        for voice in engine.getProperty("voices"): # type: ignore
             if "jamie" in voice.name.lower():
                 engine.setProperty("voice", voice.id)
                 break
@@ -101,7 +102,7 @@ def write():
                         post("status", "idle")
                         logging.info("🎤 Listening for wake word...")
                         audio = recognizer.listen(source, timeout=10)
-                        transcript = recognizer.recognize_google(audio)
+                        transcript = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"🗣 Heard: {transcript}")
 
                         if TRIGGER_WORD.lower() in transcript.lower():
@@ -117,7 +118,7 @@ def write():
                         post("status", "listening")
                         logging.info("🎤 Listening for next command...")
                         audio = recognizer.listen(source, timeout=10)
-                        command = recognizer.recognize_google(audio)
+                        command = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"📥 Command: {command}")
                         
                         post("log", ("user", command))
@@ -132,7 +133,7 @@ def write():
                         speak_text(content)
                         last_interaction_time = time.time()
 
-                        if time.time() - last_interaction_time > CONVERSATION_TIMEOUT:
+                        if last_interaction_time is not None and time.time() - last_interaction_time > CONVERSATION_TIMEOUT:
                             logging.info("⌛ Timeout: Returning to wake word mode.")
                             conversation_mode = False
 
@@ -140,6 +141,7 @@ def write():
                     logging.warning("⚠️ Timeout waiting for audio.")
                     if (
                         conversation_mode
+                        and last_interaction_time is not None
                         and time.time() - last_interaction_time > CONVERSATION_TIMEOUT
                     ):
                         logging.info(
