@@ -72,15 +72,19 @@ def speak_text(text: str):
     post("log", ("jarvis", text))
     try:
         engine = pyttsx3.init()
-        # pyright doesn't know the exact type returned by getProperty
-        for voice in engine.getProperty("voices"): # type: ignore
-            if "jamie" in voice.name.lower():
-                engine.setProperty("voice", voice.id)
-                break
+        logging.debug("[TTS] pyttsx3 engine initialized.")
+        # Commenting out custom voice selection for debug
+        # for voice in engine.getProperty("voices"): # type: ignore
+        #     if "jamie" in voice.name.lower():
+        #         engine.setProperty("voice", voice.id)
+        #         break
         engine.setProperty("rate", 180)
         engine.setProperty("volume", 1.0)
+        logging.debug(f"[TTS] Speaking: {text}")
         engine.say(text)
+        logging.debug("[TTS] Called engine.say()")
         engine.runAndWait()
+        logging.debug("[TTS] Called engine.runAndWait()")
         time.sleep(0.3)
     except Exception as e:
         logging.error(f"❌ TTS failed: {e}")
