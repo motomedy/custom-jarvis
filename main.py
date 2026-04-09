@@ -29,7 +29,7 @@ try:
 except ImportError:
     def post(event, data=None): pass
 
-MIC_INDEX = None
+MIC_INDEX = 2
 TRIGGER_WORD = "jarvis"
 CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
 

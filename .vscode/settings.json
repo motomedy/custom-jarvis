@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^pip3 show pyttsx3 && which python3 && pip3 --version$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
