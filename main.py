@@ -179,24 +179,37 @@ def write():
                 if not conversation_mode:
                     post("status", "idle")
                     logging.info("🎤 Listening for wake word...")
-                    with sr.Microphone(device_index=MIC_INDEX) as source:
-                        logging.info("[STATE] Microphone opened.")
-                        recognizer.adjust_for_ambient_noise(source)
-                        audio = recognizer.listen(source, timeout=30)
-                    transcript = recognizer.recognize_google(audio) # type: ignore
-                    logging.info(f"🗣 Heard: {transcript}")
+                    try:
+                        with sr.Microphone(device_index=MIC_INDEX) as source:
+                            logging.info("[STATE] Microphone opened.")
+                            recognizer.adjust_for_ambient_noise(source)
+                            audio = recognizer.listen(source, timeout=30)
+                        transcript = recognizer.recognize_google(audio) # type: ignore
+                        logging.info(f"🗣 Heard: {transcript}")
 
-                    if TRIGGER_WORD.lower() in transcript.lower():
-                        logging.info(f"🗣 Triggered by: {transcript}")
-                        post("log", ("user", transcript))
-                        logging.info("[STATE] Entering conversation mode.")
-                        speak_text("Yes sir?")
-                        tts_queue.join()
-                        time.sleep(0.5)
-                        conversation_mode = True
-                        last_interaction_time = time.time()
-                    else:
-                        logging.debug("Wake word not detected, continuing...")
+                        if TRIGGER_WORD.lower() in transcript.lower():
+                            logging.info(f"🗣 Triggered by: {transcript}")
+                            post("log", ("user", transcript))
+                            logging.info("[STATE] Entering conversation mode.")
+                            speak_text("Yes sir?")
+                            tts_queue.join()
+                            time.sleep(0.5)
+                            conversation_mode = True
+                            last_interaction_time = time.time()
+                        else:
+                            logging.debug("Wake word not detected, continuing...")
+                    except AssertionError as e:
+                        logging.error(f"Microphone assertion error: {e}")
+                        time.sleep(1)
+                        continue
+                    except AttributeError as e:
+                        logging.error(f"Microphone attribute error: {e}")
+                        time.sleep(1)
+                        continue
+                    except Exception as e:
+                        logging.exception("❌ Error during wake word recognition:")
+                        time.sleep(1)
+                        continue
                 # --- New logic: Listen for user command in conversation mode ---
                 elif conversation_mode:
                     post("status", "listening")
@@ -222,6 +235,16 @@ def write():
                         speak_text("Sorry, I didn't catch that. Please repeat.")
                         tts_queue.join()
                         last_interaction_time = time.time()
+                    except AssertionError as e:
+                        logging.error(f"Microphone assertion error: {e}")
+                        conversation_mode = False
+                        time.sleep(1)
+                        continue
+                    except AttributeError as e:
+                        logging.error(f"Microphone attribute error: {e}")
+                        conversation_mode = False
+                        time.sleep(1)
+                        continue
                     except Exception as e:
                         logging.exception("❌ Error during user command recognition or processing:")
                         speak_text("Sorry, something went wrong.")
