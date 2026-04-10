@@ -174,6 +174,9 @@ def write():
             recognizer.adjust_for_ambient_noise(source, duration=1)
         logging.info("[STATE] Calibration complete.")
         calibrated = True
+        MAX_UNRECOGNIZED_ATTEMPTS = 3
+        unrecognized_attempts = 0
+        EXIT_COMMANDS = ["exit", "quit", "stop listening", "goodbye"]
         while True:
             try:
                 mics = sr.Microphone.list_microphone_names()
@@ -249,26 +252,43 @@ def write():
                         user_command = recognizer.recognize_google(audio)
                         logging.info(f"🗣 User command: {user_command}")
                         post("log", ("user", user_command))
+                        # Check for exit command
+                        if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
+                            speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
+                            tts_queue.join()
+                            conversation_mode = False
+                            unrecognized_attempts = 0
+                            continue
                         # Here you can process the user_command with your agent/executor
                         response = executor.invoke({"input": user_command})
                         speak_text(str(response["output"]))
                         tts_queue.join()
                         last_interaction_time = time.time()
+                        unrecognized_attempts = 0
                     except sr.WaitTimeoutError:
                         logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
                         speak_text("No input detected. Returning to wake word mode.")
                         tts_queue.join()
                         conversation_mode = False
+                        unrecognized_attempts = 0
                     except sr.UnknownValueError:
                         logging.warning("⚠️ Could not understand audio in conversation mode.")
-                        speak_text("Sorry, I didn't catch that. Please repeat.")
-                        tts_queue.join()
-                        last_interaction_time = time.time()
+                        unrecognized_attempts += 1
+                        if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
+                            speak_text("Too many failed attempts. Returning to wake word mode.")
+                            tts_queue.join()
+                            conversation_mode = False
+                            unrecognized_attempts = 0
+                        else:
+                            speak_text("Sorry, I didn't catch that. Please repeat.")
+                            tts_queue.join()
+                            last_interaction_time = time.time()
                     except AssertionError as e:
                         logging.error(f"Microphone assertion error: {e}")
                         speak_text("Microphone error. Returning to wake word mode.")
                         tts_queue.join()
                         conversation_mode = False
+                        unrecognized_attempts = 0
                         time.sleep(1)
                         continue
                     except AttributeError as e:
@@ -276,6 +296,7 @@ def write():
                         speak_text("Microphone error. Returning to wake word mode.")
                         tts_queue.join()
                         conversation_mode = False
+                        unrecognized_attempts = 0
                         time.sleep(1)
                         continue
                     except Exception as e:
@@ -283,6 +304,7 @@ def write():
                         speak_text("Sorry, something went wrong.")
                         tts_queue.join()
                         conversation_mode = False
+                        unrecognized_attempts = 0
                 if (
                     conversation_mode
                     and last_interaction_time is not None
