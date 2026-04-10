@@ -177,8 +177,11 @@ def write():
         MAX_UNRECOGNIZED_ATTEMPTS = 3
         unrecognized_attempts = 0
         EXIT_COMMANDS = ["exit", "quit", "stop listening", "goodbye"]
-        while True:
-            try:
+
+        # --- Refactored: Keep microphone open for each mode ---
+        mic = None
+        try:
+            while True:
                 mics = sr.Microphone.list_microphone_names()
                 if MIC_INDEX >= len(mics):
                     logging.error(f"Selected microphone index {MIC_INDEX} not available. Available devices:")
@@ -196,76 +199,65 @@ def write():
                         recognizer.adjust_for_ambient_noise(source, duration=1)
                     logging.info("[STATE] Calibration complete.")
                     continue
+
                 if not conversation_mode:
                     post("status", "idle")
                     logging.info("🎤 Listening for wake word...")
                     speak_text("Listening for wake word.")
                     tts_queue.join()
+                    if mic is not None:
+                        mic.__exit__(None, None, None)
+                        mic = None
+                    mic = sr.Microphone(device_index=MIC_INDEX)
+                    with mic as source:
+                        logging.info("[STATE] Microphone opened.")
+                        audio = recognizer.listen(source, timeout=30, phrase_time_limit=8)
                     try:
-                        with sr.Microphone(device_index=MIC_INDEX) as source:
-                            logging.info("[STATE] Microphone opened.")
-                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=8)
-                        try:
-                            transcript = recognizer.recognize_google(audio) # type: ignore
-                            logging.info(f"🗣 Heard: {transcript}")
-                            # Fuzzy wake word match
-                            if any(w in transcript.lower() for w in [TRIGGER_WORD.lower(), "jarv", "jervis"]):
-                                logging.info(f"🗣 Triggered by: {transcript}")
-                                post("log", ("user", transcript))
-                                logging.info("[STATE] Entering conversation mode.")
-                                speak_text("Yes sir?")
-                                tts_queue.join()
-                                time.sleep(0.5)
-                                conversation_mode = True
-                                last_interaction_time = time.time()
-                            else:
-                                logging.debug("Wake word not detected, continuing...")
-                                speak_text("Wake word not detected. Listening again.")
-                                tts_queue.join()
-                        except sr.UnknownValueError:
-                            logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
-                            # Save failed audio for debugging
-                            import wave, datetime
-                            nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                            with wave.open(f"wakeword_fail_{nowstr}.wav", "wb") as wf:
-                                wf.setnchannels(1)
-                                wf.setsampwidth(2)
-                                wf.setframerate(16000)
-                                wf.writeframes(audio.get_raw_data())
-                            speak_text("Didn't catch that. Please say 'Jarvis' again.")
+                        transcript = recognizer.recognize_google(audio) # type: ignore
+                        logging.info(f"🗣 Heard: {transcript}")
+                        # Fuzzy wake word match
+                        if any(w in transcript.lower() for w in [TRIGGER_WORD.lower(), "jarv", "jervis"]):
+                            logging.info(f"🗣 Triggered by: {transcript}")
+                            post("log", ("user", transcript))
+                            logging.info("[STATE] Entering conversation mode.")
+                            speak_text("Yes sir?")
                             tts_queue.join()
-                        except Exception as e:
-                            logging.exception("❌ Error during wake word recognition (inner):")
-                            speak_text("Error during wake word recognition. Please try again.")
+                            time.sleep(0.5)
+                            conversation_mode = True
+                            last_interaction_time = time.time()
+                        else:
+                            logging.debug("Wake word not detected, continuing...")
+                            speak_text("Wake word not detected. Listening again.")
                             tts_queue.join()
-                    except AssertionError as e:
-                        logging.error(f"Microphone assertion error: {e}")
-                        speak_text("Microphone error. Please check your device.")
+                    except sr.UnknownValueError:
+                        logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
+                        # Save failed audio for debugging
+                        import wave, datetime
+                        nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        with wave.open(f"wakeword_fail_{nowstr}.wav", "wb") as wf:
+                            wf.setnchannels(1)
+                            wf.setsampwidth(2)
+                            wf.setframerate(16000)
+                            wf.writeframes(audio.get_raw_data())
+                        speak_text("Didn't catch that. Please say 'Jarvis' again.")
                         tts_queue.join()
-                        time.sleep(1)
-                        continue
-                    except AttributeError as e:
-                        logging.error(f"Microphone attribute error: {e}")
-                        speak_text("Microphone error. Please check your device.")
-                        tts_queue.join()
-                        time.sleep(1)
-                        continue
                     except Exception as e:
-                        logging.exception("❌ Error during wake word recognition (outer):")
+                        logging.exception("❌ Error during wake word recognition (inner):")
                         speak_text("Error during wake word recognition. Please try again.")
                         tts_queue.join()
-                        time.sleep(1)
-                        continue
-                # --- New logic: Listen for user command in conversation mode ---
-                elif conversation_mode:
+                else:
                     post("status", "listening")
                     logging.info("🎤 Listening for user command in conversation mode...")
                     speak_text("Listening for your command.")
                     tts_queue.join()
+                    if mic is not None:
+                        mic.__exit__(None, None, None)
+                        mic = None
+                    mic = sr.Microphone(device_index=MIC_INDEX)
+                    with mic as source:
+                        logging.info("[STATE] Microphone opened.")
+                        audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
                     try:
-                        with sr.Microphone(device_index=MIC_INDEX) as source:
-                            logging.info("[STATE] Microphone opened.")
-                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
                         user_command = recognizer.recognize_google(audio)
                         logging.info(f"🗣 User command: {user_command}")
                         post("log", ("user", user_command))
@@ -330,6 +322,7 @@ def write():
                         tts_queue.join()
                         conversation_mode = False
                         unrecognized_attempts = 0
+
                 if (
                     conversation_mode
                     and last_interaction_time is not None
@@ -341,21 +334,16 @@ def write():
                     conversation_mode = False
                 if conversation_mode:
                     time.sleep(1)
-            except sr.UnknownValueError:
-                logging.warning("⚠️ Could not understand audio.")
-                if conversation_mode:
-                    time.sleep(1)
-            except Exception as e:
-                logging.exception("❌ Error during recognition or tool call:")
-                time.sleep(1)
-            time.sleep(0.1)
 
-            now = time.time()
-            if now - last_resource_log > resource_log_interval:
-                cpu = psutil.cpu_percent(interval=None)
-                mem = psutil.virtual_memory()
-                logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
-                last_resource_log = now
+                now = time.time()
+                if now - last_resource_log > resource_log_interval:
+                    cpu = psutil.cpu_percent(interval=None)
+                    mem = psutil.virtual_memory()
+                    logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
+                    last_resource_log = now
+        finally:
+            if mic is not None:
+                mic.__exit__(None, None, None)
 
     except Exception as e:
         logging.exception("❌ Critical error in main loop:")
