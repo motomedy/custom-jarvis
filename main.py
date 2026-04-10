@@ -160,12 +160,12 @@ tts_thread = threading.Thread(target=tts_worker, daemon=True)
 tts_thread.start()
 
 # Safe join with timeout
-def safe_tts_join(timeout=10):
+def safe_tts_join():
     ensure_tts_thread()
     try:
-        tts_queue.join(timeout=timeout)
+        tts_queue.join()
     except Exception as e:
-        logging.warning(f"[TTS] tts_queue.join() failed or timed out: {e}")
+        logging.warning(f"[TTS] tts_queue.join() failed: {e}")
 
 def speak_text(text: str):
     tts_queue.put(text)
@@ -375,13 +375,13 @@ def write():
                         except Exception as e:
                             logging.exception("❌ Error during user command recognition or processing:")
                             speak_text("Sorry, something went wrong.")
-                            tts_queue.join()
+                            safe_tts_join()
                             conversation_mode = False
                             unrecognized_attempts = 0
                     except (AssertionError, AttributeError) as e:
                         logging.error(f"Microphone error: {e}")
                         speak_text("Microphone error. Returning to wake word mode.")
-                        tts_queue.join()
+                        safe_tts_join()
                         conversation_mode = False
                         unrecognized_attempts = 0
                         time.sleep(1)
@@ -389,7 +389,7 @@ def write():
                     except Exception as e:
                         logging.exception("❌ Error during user command recognition or processing (outer):")
                         speak_text("Sorry, something went wrong.")
-                        tts_queue.join()
+                        safe_tts_join()
                         conversation_mode = False
                         unrecognized_attempts = 0
 
