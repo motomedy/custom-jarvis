@@ -199,8 +199,8 @@ def write():
     try:
         resource_log_interval = 30  # seconds
         last_resource_log = time.time()
-        fail_count = 0
-        MAX_FAILS = 5
+        mic_fail_count = 0
+        MAX_MIC_FAILS = 3
         # Calibrate for background noise ONCE at startup
         try:
             mics = sr.Microphone.list_microphone_names()
@@ -223,13 +223,13 @@ def write():
                     print("[JARVIS] Microphone calibration failed. Please check your device and try again.")
                     speak_text("Microphone calibration failed. Please check your device and try again.")
                     safe_tts_join()
-                    return
+                    sys.exit(1)
         except Exception as e:
             logging.critical(f"[MIC ERROR] Exception during microphone calibration: {e}")
             print("[JARVIS] Microphone calibration failed due to an unexpected error.")
             speak_text("Microphone calibration failed due to an unexpected error.")
             safe_tts_join()
-            return
+            sys.exit(1)
         logging.info("[STATE] Calibration complete.")
         calibrated = True
         MAX_UNRECOGNIZED_ATTEMPTS = 3
@@ -293,6 +293,7 @@ def write():
                                 logging.debug("Wake word not detected, continuing...")
                                 speak_text("Wake word not detected. Listening again.")
                                 safe_tts_join()
+                            mic_fail_count = 0
                         except sr.UnknownValueError:
                             logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
                             # Save failed audio for debugging
@@ -309,17 +310,32 @@ def write():
                             logging.exception("❌ Error during wake word recognition (inner):")
                             speak_text("Error during wake word recognition. Please try again.")
                             safe_tts_join()
+                            mic_fail_count += 1
                     except (AssertionError, AttributeError) as e:
                         logging.error(f"Microphone error: {e}")
                         speak_text("Microphone error. Please check your device.")
                         safe_tts_join()
+                        mic_fail_count += 1
                         time.sleep(1)
+                        if mic_fail_count >= MAX_MIC_FAILS:
+                            print("[JARVIS] Too many microphone errors. Please select a new device or check your hardware.")
+                            speak_text("Too many microphone errors. Please select a new device or check your hardware.")
+                            safe_tts_join()
+                            MIC_INDEX = select_microphone()
+                            mic_fail_count = 0
                         continue
                     except Exception as e:
                         logging.exception("❌ Error during wake word recognition (outer):")
                         speak_text("Error during wake word recognition. Please try again.")
                         safe_tts_join()
+                        mic_fail_count += 1
                         time.sleep(1)
+                        if mic_fail_count >= MAX_MIC_FAILS:
+                            print("[JARVIS] Too many microphone errors. Please select a new device or check your hardware.")
+                            speak_text("Too many microphone errors. Please select a new device or check your hardware.")
+                            safe_tts_join()
+                            MIC_INDEX = select_microphone()
+                            mic_fail_count = 0
                         continue
                 else:
                     post("status", "listening")
@@ -436,6 +452,7 @@ def write():
                         mic.__exit__(None, None, None)
                 except Exception:
                     pass
+            mic = None
 
     except Exception as e:
         logging.exception("❌ Critical error in main loop:")
