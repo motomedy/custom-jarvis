@@ -1,4 +1,5 @@
 import os
+import sys
 import psutil
 import logging
 import time
@@ -159,6 +160,7 @@ def write():
     last_interaction_time = None
 
 
+    global MIC_INDEX
     try:
         resource_log_interval = 30  # seconds
         last_resource_log = time.time()
@@ -171,8 +173,10 @@ def write():
                     logging.error(f"Selected microphone index {MIC_INDEX} not available. Available devices:")
                     for idx, name in enumerate(mics):
                         logging.error(f"  Index {idx}: {name}")
-                    print("Microphone device not found. Please restart and select a valid device.")
-                    sys.exit(1)
+                    print("Microphone device not found. Please select a new device.")
+                    global MIC_INDEX
+                    MIC_INDEX = select_microphone()
+                    continue
                 with sr.Microphone(device_index=MIC_INDEX) as source:
                     logging.info("[STATE] Microphone opened.")
                     recognizer.adjust_for_ambient_noise(source)
@@ -222,8 +226,10 @@ def write():
                 logging.error(f"[MIC] Could not open microphone or audio stream: {mic_error}")
                 fail_count += 1
                 if fail_count >= MAX_FAILS:
-                    print("Too many microphone errors. Exiting.")
-                    sys.exit(1)
+                    print("Too many microphone errors. Please select a new device or check your hardware.")
+                    MIC_INDEX = select_microphone()
+                    fail_count = 0
+                    continue
                 time.sleep(2)
 
             except sr.WaitTimeoutError:
