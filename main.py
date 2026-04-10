@@ -204,22 +204,39 @@ def write():
                     try:
                         with sr.Microphone(device_index=MIC_INDEX) as source:
                             logging.info("[STATE] Microphone opened.")
-                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=5)
-                        transcript = recognizer.recognize_google(audio) # type: ignore
-                        logging.info(f"🗣 Heard: {transcript}")
-
-                        if TRIGGER_WORD.lower() in transcript.lower():
-                            logging.info(f"🗣 Triggered by: {transcript}")
-                            post("log", ("user", transcript))
-                            logging.info("[STATE] Entering conversation mode.")
-                            speak_text("Yes sir?")
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=8)
+                        try:
+                            transcript = recognizer.recognize_google(audio) # type: ignore
+                            logging.info(f"🗣 Heard: {transcript}")
+                            # Fuzzy wake word match
+                            if any(w in transcript.lower() for w in [TRIGGER_WORD.lower(), "jarv", "jervis"]):
+                                logging.info(f"🗣 Triggered by: {transcript}")
+                                post("log", ("user", transcript))
+                                logging.info("[STATE] Entering conversation mode.")
+                                speak_text("Yes sir?")
+                                tts_queue.join()
+                                time.sleep(0.5)
+                                conversation_mode = True
+                                last_interaction_time = time.time()
+                            else:
+                                logging.debug("Wake word not detected, continuing...")
+                                speak_text("Wake word not detected. Listening again.")
+                                tts_queue.join()
+                        except sr.UnknownValueError:
+                            logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
+                            # Save failed audio for debugging
+                            import wave, datetime
+                            nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                            with wave.open(f"wakeword_fail_{nowstr}.wav", "wb") as wf:
+                                wf.setnchannels(1)
+                                wf.setsampwidth(2)
+                                wf.setframerate(16000)
+                                wf.writeframes(audio.get_raw_data())
+                            speak_text("Didn't catch that. Please say 'Jarvis' again.")
                             tts_queue.join()
-                            time.sleep(0.5)
-                            conversation_mode = True
-                            last_interaction_time = time.time()
-                        else:
-                            logging.debug("Wake word not detected, continuing...")
-                            speak_text("Wake word not detected. Listening again.")
+                        except Exception as e:
+                            logging.exception("❌ Error during wake word recognition (inner):")
+                            speak_text("Error during wake word recognition. Please try again.")
                             tts_queue.join()
                     except AssertionError as e:
                         logging.error(f"Microphone assertion error: {e}")
@@ -234,7 +251,7 @@ def write():
                         time.sleep(1)
                         continue
                     except Exception as e:
-                        logging.exception("❌ Error during wake word recognition:")
+                        logging.exception("❌ Error during wake word recognition (outer):")
                         speak_text("Error during wake word recognition. Please try again.")
                         tts_queue.join()
                         time.sleep(1)
