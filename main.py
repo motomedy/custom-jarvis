@@ -1,6 +1,9 @@
 import os
+import psutil
 import logging
 import time
+import threading
+import queue
 import pyttsx3
 from dotenv import load_dotenv
 import speech_recognition as sr
@@ -39,7 +42,6 @@ logging.basicConfig(level=logging.DEBUG)  # logging
 # org_id = os.getenv("OPENAI_ORG_ID") removed because it's not needed for ollama
 
 recognizer = sr.Recognizer()
-mic = sr.Microphone(device_index=MIC_INDEX)
 
 # Initialize LLM
 llm = ChatOllama(model="qwen3:1.7b", reasoning=False)
@@ -109,20 +111,48 @@ if not selected:
 tts_engine.setProperty("rate", 180)
 tts_engine.setProperty("volume", 1.0)
 
+
+# TTS background thread setup
+tts_queue = queue.Queue()
+
+def tts_worker():
+    while True:
+        text = tts_queue.get()
+        try:
+            if text is None:
+                break
+            post("status", "speaking")
+            post("log", ("jarvis", text))
+            logging.info("[STATE] TTS starting.")
+            try:
+                logging.debug(f"[TTS] Speaking: {text}")
+                tts_engine.say(text)
+                logging.debug("[TTS] Called engine.say()")
+                tts_engine.runAndWait()
+                logging.debug("[TTS] Called engine.runAndWait()")
+                time.sleep(0.3)
+            except Exception as e:
+                logging.exception("❌ TTS failed:")
+                # Attempt to re-initialize the TTS engine if it fails
+                try:
+                    global tts_engine
+                    tts_engine = pyttsx3.init()
+                    logging.info("[TTS] pyttsx3 engine re-initialized after failure.")
+                except Exception as reinit_e:
+                    logging.exception("[TTS] Failed to re-initialize pyttsx3 engine:")
+            finally:
+                logging.info("[STATE] TTS finished.")
+                post("status", "idle")
+        except Exception as fatal_e:
+            logging.exception("[TTS] Fatal error in TTS worker loop:")
+        finally:
+            tts_queue.task_done()
+
+tts_thread = threading.Thread(target=tts_worker, daemon=True)
+tts_thread.start()
+
 def speak_text(text: str):
-    post("status", "speaking")
-    post("log", ("jarvis", text))
-    try:
-        logging.debug(f"[TTS] Speaking: {text}")
-        tts_engine.say(text)
-        logging.debug("[TTS] Called engine.say()")
-        tts_engine.runAndWait()
-        logging.debug("[TTS] Called engine.runAndWait()")
-        time.sleep(0.3)
-    except Exception as e:
-        logging.error(f"❌ TTS failed: {e}")
-    finally:
-        post("status", "idle")
+    tts_queue.put(text)
 
 
 # Main interaction loop
@@ -130,10 +160,14 @@ def write():
     conversation_mode = False
     last_interaction_time = None
 
+
     try:
+        resource_log_interval = 30  # seconds
+        last_resource_log = time.time()
         while True:
             try:
-                with mic as source:
+                with sr.Microphone(device_index=MIC_INDEX) as source:
+                    logging.info("[STATE] Microphone opened.")
                     recognizer.adjust_for_ambient_noise(source)
                     if not conversation_mode:
                         post("status", "idle")
@@ -146,6 +180,7 @@ def write():
                             logging.info(f"🗣 Triggered by: {transcript}")
                             # Wake word detected, entering convo mode
                             post("log", ("user", transcript))
+                            logging.info("[STATE] Entering conversation mode.")
                             speak_text("Yes sir?")
                             conversation_mode = True
                             last_interaction_time = time.time()
@@ -170,8 +205,9 @@ def write():
                         last_interaction_time = time.time()
 
                         if last_interaction_time is not None and time.time() - last_interaction_time > CONVERSATION_TIMEOUT:
-                            logging.info("⌛ Timeout: Returning to wake word mode.")
+                            logging.info("[STATE] Exiting conversation mode due to timeout.")
                             conversation_mode = False
+                    logging.info("[STATE] Microphone closed.")
 
             except sr.WaitTimeoutError:
                 logging.warning("⚠️ Timeout waiting for audio.")
@@ -184,14 +220,30 @@ def write():
                         "⌛ No input in conversation mode. Returning to wake word mode."
                     )
                     conversation_mode = False
+                # Add a short delay after timeout in conversation mode
+                if conversation_mode:
+                    time.sleep(1)
             except sr.UnknownValueError:
                 logging.warning("⚠️ Could not understand audio.")
+                # Add a short delay after failed recognition in conversation mode
+                if conversation_mode:
+                    time.sleep(1)
             except Exception as e:
-                logging.error(f"❌ Error during recognition or tool call: {e}")
+                logging.exception("❌ Error during recognition or tool call:")
                 time.sleep(1)
+            # Step 1: Add a small sleep to prevent high CPU usage
+            time.sleep(0.1)
+
+            # Step 5: Periodically log CPU and memory usage
+            now = time.time()
+            if now - last_resource_log > resource_log_interval:
+                cpu = psutil.cpu_percent(interval=None)
+                mem = psutil.virtual_memory()
+                logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
+                last_resource_log = now
 
     except Exception as e:
-        logging.critical(f"❌ Critical error in main loop: {e}")
+        logging.exception("❌ Critical error in main loop:")
 
 
 if __name__ == "__main__":
