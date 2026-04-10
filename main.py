@@ -176,54 +176,57 @@ def write():
                     print("Microphone device not found. Please select a new device.")
                     MIC_INDEX = select_microphone()
                     continue
-                with sr.Microphone(device_index=MIC_INDEX) as source:
-                    logging.info("[STATE] Microphone opened.")
-                    recognizer.adjust_for_ambient_noise(source)
-                    if not conversation_mode:
-                        post("status", "idle")
-                        logging.info("🎤 Listening for wake word...")
+                if not conversation_mode:
+                    post("status", "idle")
+                    logging.info("🎤 Listening for wake word...")
+                    with sr.Microphone(device_index=MIC_INDEX) as source:
+                        logging.info("[STATE] Microphone opened.")
+                        recognizer.adjust_for_ambient_noise(source)
                         audio = recognizer.listen(source, timeout=30)
-                        transcript = recognizer.recognize_google(audio) # type: ignore
-                        logging.info(f"🗣 Heard: {transcript}")
+                    transcript = recognizer.recognize_google(audio) # type: ignore
+                    logging.info(f"🗣 Heard: {transcript}")
 
-                        if TRIGGER_WORD.lower() in transcript.lower():
-                            logging.info(f"🗣 Triggered by: {transcript}")
-                            post("log", ("user", transcript))
-                            logging.info("[STATE] Entering conversation mode.")
-                            speak_text("Yes sir?")
-                            tts_queue.join()
-                            time.sleep(0.5)
-                            conversation_mode = True
-                            last_interaction_time = time.time()
-                        else:
-                            logging.debug("Wake word not detected, continuing...")
-                    # --- New logic: Listen for user command in conversation mode ---
-                    elif conversation_mode:
-                        post("status", "listening")
-                        logging.info("🎤 Listening for user command in conversation mode...")
-                        try:
+                    if TRIGGER_WORD.lower() in transcript.lower():
+                        logging.info(f"🗣 Triggered by: {transcript}")
+                        post("log", ("user", transcript))
+                        logging.info("[STATE] Entering conversation mode.")
+                        speak_text("Yes sir?")
+                        tts_queue.join()
+                        time.sleep(0.5)
+                        conversation_mode = True
+                        last_interaction_time = time.time()
+                    else:
+                        logging.debug("Wake word not detected, continuing...")
+                # --- New logic: Listen for user command in conversation mode ---
+                elif conversation_mode:
+                    post("status", "listening")
+                    logging.info("🎤 Listening for user command in conversation mode...")
+                    try:
+                        with sr.Microphone(device_index=MIC_INDEX) as source:
+                            logging.info("[STATE] Microphone opened.")
+                            recognizer.adjust_for_ambient_noise(source)
                             audio = recognizer.listen(source, timeout=30, phrase_time_limit=15)
-                            user_command = recognizer.recognize_google(audio)
-                            logging.info(f"🗣 User command: {user_command}")
-                            post("log", ("user", user_command))
-                            # Here you can process the user_command with your agent/executor
-                            response = executor.invoke({"input": user_command})
-                            speak_text(str(response["output"]))
-                            tts_queue.join()
-                            last_interaction_time = time.time()
-                        except sr.WaitTimeoutError:
-                            logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
-                            conversation_mode = False
-                        except sr.UnknownValueError:
-                            logging.warning("⚠️ Could not understand audio in conversation mode.")
-                            speak_text("Sorry, I didn't catch that. Please repeat.")
-                            tts_queue.join()
-                            last_interaction_time = time.time()
-                        except Exception as e:
-                            logging.exception("❌ Error during user command recognition or processing:")
-                            speak_text("Sorry, something went wrong.")
-                            tts_queue.join()
-                            conversation_mode = False
+                        user_command = recognizer.recognize_google(audio)
+                        logging.info(f"🗣 User command: {user_command}")
+                        post("log", ("user", user_command))
+                        # Here you can process the user_command with your agent/executor
+                        response = executor.invoke({"input": user_command})
+                        speak_text(str(response["output"]))
+                        tts_queue.join()
+                        last_interaction_time = time.time()
+                    except sr.WaitTimeoutError:
+                        logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
+                        conversation_mode = False
+                    except sr.UnknownValueError:
+                        logging.warning("⚠️ Could not understand audio in conversation mode.")
+                        speak_text("Sorry, I didn't catch that. Please repeat.")
+                        tts_queue.join()
+                        last_interaction_time = time.time()
+                    except Exception as e:
+                        logging.exception("❌ Error during user command recognition or processing:")
+                        speak_text("Sorry, something went wrong.")
+                        tts_queue.join()
+                        conversation_mode = False
                 if (
                     conversation_mode
                     and last_interaction_time is not None
