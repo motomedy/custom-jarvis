@@ -373,7 +373,11 @@ def write():
                     last_resource_log = now
         finally:
             if mic is not None:
-                mic.__exit__(None, None, None)
+                try:
+                    if hasattr(mic, 'stream') and mic.stream is not None:
+                        mic.__exit__(None, None, None)
+                except Exception:
+                    pass
 
     except Exception as e:
         logging.exception("❌ Critical error in main loop:")
