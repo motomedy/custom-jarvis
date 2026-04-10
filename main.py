@@ -32,6 +32,14 @@ try:
 except ImportError:
     def post(event, data=None): pass
 
+try:
+    print("Available microphone devices:")
+    for idx, name in enumerate(sr.Microphone.list_microphone_names()):
+        print(f"  Index {idx}: {name}")
+except Exception as e:
+    print(f"Could not list microphones: {e}")
+
+# Set this to the correct index after checking the printed list
 MIC_INDEX = 2
 TRIGGER_WORD = "jarvis"
 CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
@@ -116,6 +124,7 @@ tts_engine.setProperty("volume", 1.0)
 tts_queue = queue.Queue()
 
 def tts_worker():
+    global tts_engine
     while True:
         text = tts_queue.get()
         try:
@@ -135,7 +144,6 @@ def tts_worker():
                 logging.exception("❌ TTS failed:")
                 # Attempt to re-initialize the TTS engine if it fails
                 try:
-                    global tts_engine
                     tts_engine = pyttsx3.init()
                     logging.info("[TTS] pyttsx3 engine re-initialized after failure.")
                 except Exception as reinit_e:
@@ -208,6 +216,9 @@ def write():
                             logging.info("[STATE] Exiting conversation mode due to timeout.")
                             conversation_mode = False
                     logging.info("[STATE] Microphone closed.")
+            except Exception as mic_error:
+                logging.error(f"[MIC] Could not open microphone or audio stream: {mic_error}")
+                time.sleep(2)
 
             except sr.WaitTimeoutError:
                 logging.warning("⚠️ Timeout waiting for audio.")
