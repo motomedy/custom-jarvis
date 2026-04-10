@@ -73,11 +73,20 @@ def speak_text(text: str):
     try:
         engine = pyttsx3.init()
         logging.debug("[TTS] pyttsx3 engine initialized.")
-        # Commenting out custom voice selection for debug
-        # for voice in engine.getProperty("voices"): # type: ignore
-        #     if "jamie" in voice.name.lower():
-        #         engine.setProperty("voice", voice.id)
-        #         break
+        # Set a specific macOS voice for reliability
+        voices = engine.getProperty("voices")
+        logging.debug(f"[TTS] Available voices:")
+        for v in voices:
+            logging.debug(f"- {v.name} ({v.id}) [{v.languages}]")
+        selected = False
+        for voice in voices:
+            if "alex" in voice.name.lower():
+                engine.setProperty("voice", voice.id)
+                logging.debug(f"[TTS] Using voice: {voice.name}")
+                selected = True
+                break
+        if not selected:
+            logging.debug("[TTS] 'Alex' voice not found, using default.")
         engine.setProperty("rate", 180)
         engine.setProperty("volume", 1.0)
         logging.debug(f"[TTS] Speaking: {text}")

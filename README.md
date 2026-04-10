@@ -19,7 +19,7 @@
 ## ▶️ How It Works (`main.py`)
 
 1. **Startup & local LLM Setup**
-   - Initializes a local Ollama model (`qwen3:1.7b`) via `ChatOllama`
+   - Initializes a local Ollama model (`llama3.2:1b`) via `ChatOllama`
    - Registers tools (`get_time`) using LangChain
 
 2. **Wake Word Listening**
@@ -45,7 +45,7 @@
    ```
 
 2. **Set Up the Local Model**  
-   Ensure you have the `qwen3:1.7b` model available in Ollama.
+   Ensure you have the `llama3.2:1b` model available in Ollama.
 
 3. **Run Jarvis**  
    Start the assistant by running:
