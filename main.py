@@ -109,8 +109,16 @@ def set_tts_voice(engine):
     engine.setProperty("rate", 180)
     engine.setProperty("volume", 1.0)
 
+
 tts_engine = pyttsx3.init()
 set_tts_voice(tts_engine)
+# macOS/pyttsx3 workaround: speak a silent utterance to lock in Samantha
+try:
+    tts_engine.say(" ")
+    tts_engine.runAndWait()
+    logging.debug("[TTS] Performed silent utterance to lock in Samantha voice.")
+except Exception as e:
+    logging.warning(f"[TTS] Silent utterance workaround failed: {e}")
 logging.debug("[TTS] pyttsx3 engine initialized.")
 
 
