@@ -290,6 +290,14 @@ def write():
                         unrecognized_attempts = 0
                     except sr.UnknownValueError:
                         logging.warning("⚠️ Could not understand audio in conversation mode.")
+                        # Save failed audio for debugging
+                        import wave, datetime
+                        nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        with wave.open(f"conversation_fail_{nowstr}.wav", "wb") as wf:
+                            wf.setnchannels(1)
+                            wf.setsampwidth(2)
+                            wf.setframerate(16000)
+                            wf.writeframes(audio.get_raw_data())
                         unrecognized_attempts += 1
                         if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
                             speak_text("Too many failed attempts. Returning to wake word mode.")
