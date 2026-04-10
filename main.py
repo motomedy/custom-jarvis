@@ -167,11 +167,34 @@ def write():
         fail_count = 0
         MAX_FAILS = 5
         # Calibrate for background noise ONCE at startup
-        with sr.Microphone(device_index=MIC_INDEX) as source:
-            logging.info("[STATE] Microphone opened for initial calibration.")
-            speak_text("Calibrating for background noise, please wait.")
+        try:
+            mics = sr.Microphone.list_microphone_names()
+            if MIC_INDEX >= len(mics):
+                logging.error(f"Selected microphone index {MIC_INDEX} not available. Available devices:")
+                for idx, name in enumerate(mics):
+                    logging.error(f"  Index {idx}: {name}")
+                print("[JARVIS] Microphone device not found. Please select a new device.")
+                speak_text("Microphone device not found. Please select a new device.")
+                tts_queue.join()
+                MIC_INDEX = select_microphone()
+            with sr.Microphone(device_index=MIC_INDEX) as source:
+                logging.info("[STATE] Microphone opened for initial calibration.")
+                speak_text("Calibrating for background noise, please wait.")
+                tts_queue.join()
+                try:
+                    recognizer.adjust_for_ambient_noise(source, duration=1)
+                except AssertionError as e:
+                    logging.critical(f"[MIC ERROR] Could not calibrate microphone: {e}")
+                    print("[JARVIS] Microphone calibration failed. Please check your device and try again.")
+                    speak_text("Microphone calibration failed. Please check your device and try again.")
+                    tts_queue.join()
+                    return
+        except Exception as e:
+            logging.critical(f"[MIC ERROR] Exception during microphone calibration: {e}")
+            print("[JARVIS] Microphone calibration failed due to an unexpected error.")
+            speak_text("Microphone calibration failed due to an unexpected error.")
             tts_queue.join()
-            recognizer.adjust_for_ambient_noise(source, duration=1)
+            return
         logging.info("[STATE] Calibration complete.")
         calibrated = True
         MAX_UNRECOGNIZED_ATTEMPTS = 3
