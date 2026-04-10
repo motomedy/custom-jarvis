@@ -1,0 +1,1 @@
+{"name": "mission-control", "version": "1.0.0", "description": "Mission Control frontend for JARVIS", "main": "main.js", "scripts": {"dev": "vite", "build": "vite build", "serve": "vite preview"}, "dependencies": {"vite": "^4.0.0"}, "devDependencies": {"@vitejs/plugin-vue": "^4.0.0"}}
