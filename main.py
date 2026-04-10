@@ -128,6 +128,12 @@ def tts_worker():
             post("log", ("jarvis", text))
             logging.info("[STATE] TTS starting.")
             try:
+                # Always force Samantha voice before every utterance (macOS workaround)
+                set_tts_voice(tts_engine)
+                current_voice_id = tts_engine.getProperty("voice")
+                voices = tts_engine.getProperty("voices")
+                current_voice = next((v for v in voices if v.id == current_voice_id), None)
+                logging.debug(f"[TTS] Current voice: {current_voice.name if current_voice else current_voice_id}")
                 logging.debug(f"[TTS] Speaking: {text}")
                 tts_engine.say(text)
                 logging.debug("[TTS] Called engine.say()")
