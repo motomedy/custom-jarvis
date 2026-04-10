@@ -33,23 +33,16 @@ try:
 except ImportError:
     def post(event, data=None): pass
 
-def select_microphone():
-    print("Available microphone devices:")
+def select_macbook_microphone():
     mics = sr.Microphone.list_microphone_names()
     for idx, name in enumerate(mics):
-        print(f"  Index {idx}: {name}")
-    while True:
-        try:
-            idx = int(input("Select microphone device index: "))
-            if 0 <= idx < len(mics):
-                print(f"Selected: {mics[idx]}")
-                return idx
-            else:
-                print("Invalid index. Try again.")
-        except Exception:
-            print("Please enter a valid integer.")
+        if "macbook air microphone" in name.lower():
+            print(f"Auto-selected MacBook Air Microphone at index {idx}")
+            return idx
+    print("MacBook Air Microphone not found. Defaulting to index 0.")
+    return 0
 
-MIC_INDEX = select_microphone()
+MIC_INDEX = select_macbook_microphone()
 TRIGGER_WORD = "jarvis"
 CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
 
