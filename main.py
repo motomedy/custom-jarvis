@@ -197,6 +197,33 @@ def write():
                             last_interaction_time = time.time()
                         else:
                             logging.debug("Wake word not detected, continuing...")
+                    # --- New logic: Listen for user command in conversation mode ---
+                    elif conversation_mode:
+                        post("status", "listening")
+                        logging.info("🎤 Listening for user command in conversation mode...")
+                        try:
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=15)
+                            user_command = recognizer.recognize_google(audio)
+                            logging.info(f"🗣 User command: {user_command}")
+                            post("log", ("user", user_command))
+                            # Here you can process the user_command with your agent/executor
+                            response = executor.invoke({"input": user_command})
+                            speak_text(str(response["output"]))
+                            tts_queue.join()
+                            last_interaction_time = time.time()
+                        except sr.WaitTimeoutError:
+                            logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
+                            conversation_mode = False
+                        except sr.UnknownValueError:
+                            logging.warning("⚠️ Could not understand audio in conversation mode.")
+                            speak_text("Sorry, I didn't catch that. Please repeat.")
+                            tts_queue.join()
+                            last_interaction_time = time.time()
+                        except Exception as e:
+                            logging.exception("❌ Error during user command recognition or processing:")
+                            speak_text("Sorry, something went wrong.")
+                            tts_queue.join()
+                            conversation_mode = False
                 if (
                     conversation_mode
                     and last_interaction_time is not None
