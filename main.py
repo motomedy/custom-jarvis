@@ -173,17 +173,23 @@ def write():
                     logging.error(f"Selected microphone index {MIC_INDEX} not available. Available devices:")
                     for idx, name in enumerate(mics):
                         logging.error(f"  Index {idx}: {name}")
-                    print("Microphone device not found. Please select a new device.")
+                    print("[JARVIS] Microphone device not found. Please select a new device.")
+                    speak_text("Microphone device not found. Please select a new device.")
+                    tts_queue.join()
                     MIC_INDEX = select_microphone()
                     continue
                 if not conversation_mode:
                     post("status", "idle")
                     logging.info("🎤 Listening for wake word...")
+                    speak_text("Listening for wake word.")
+                    tts_queue.join()
                     try:
                         with sr.Microphone(device_index=MIC_INDEX) as source:
                             logging.info("[STATE] Microphone opened.")
-                            recognizer.adjust_for_ambient_noise(source)
-                            audio = recognizer.listen(source, timeout=30)
+                            speak_text("Calibrating for background noise, please wait.")
+                            tts_queue.join()
+                            recognizer.adjust_for_ambient_noise(source, duration=1)
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=5)
                         transcript = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"🗣 Heard: {transcript}")
 
@@ -198,27 +204,39 @@ def write():
                             last_interaction_time = time.time()
                         else:
                             logging.debug("Wake word not detected, continuing...")
+                            speak_text("Wake word not detected. Listening again.")
+                            tts_queue.join()
                     except AssertionError as e:
                         logging.error(f"Microphone assertion error: {e}")
+                        speak_text("Microphone error. Please check your device.")
+                        tts_queue.join()
                         time.sleep(1)
                         continue
                     except AttributeError as e:
                         logging.error(f"Microphone attribute error: {e}")
+                        speak_text("Microphone error. Please check your device.")
+                        tts_queue.join()
                         time.sleep(1)
                         continue
                     except Exception as e:
                         logging.exception("❌ Error during wake word recognition:")
+                        speak_text("Error during wake word recognition. Please try again.")
+                        tts_queue.join()
                         time.sleep(1)
                         continue
                 # --- New logic: Listen for user command in conversation mode ---
                 elif conversation_mode:
                     post("status", "listening")
                     logging.info("🎤 Listening for user command in conversation mode...")
+                    speak_text("Listening for your command.")
+                    tts_queue.join()
                     try:
                         with sr.Microphone(device_index=MIC_INDEX) as source:
                             logging.info("[STATE] Microphone opened.")
-                            recognizer.adjust_for_ambient_noise(source)
-                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=15)
+                            speak_text("Calibrating for background noise, please wait.")
+                            tts_queue.join()
+                            recognizer.adjust_for_ambient_noise(source, duration=1)
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
                         user_command = recognizer.recognize_google(audio)
                         logging.info(f"🗣 User command: {user_command}")
                         post("log", ("user", user_command))
@@ -229,6 +247,8 @@ def write():
                         last_interaction_time = time.time()
                     except sr.WaitTimeoutError:
                         logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
+                        speak_text("No input detected. Returning to wake word mode.")
+                        tts_queue.join()
                         conversation_mode = False
                     except sr.UnknownValueError:
                         logging.warning("⚠️ Could not understand audio in conversation mode.")
@@ -237,11 +257,15 @@ def write():
                         last_interaction_time = time.time()
                     except AssertionError as e:
                         logging.error(f"Microphone assertion error: {e}")
+                        speak_text("Microphone error. Returning to wake word mode.")
+                        tts_queue.join()
                         conversation_mode = False
                         time.sleep(1)
                         continue
                     except AttributeError as e:
                         logging.error(f"Microphone attribute error: {e}")
+                        speak_text("Microphone error. Returning to wake word mode.")
+                        tts_queue.join()
                         conversation_mode = False
                         time.sleep(1)
                         continue
