@@ -174,7 +174,6 @@ def write():
                     for idx, name in enumerate(mics):
                         logging.error(f"  Index {idx}: {name}")
                     print("Microphone device not found. Please select a new device.")
-                    global MIC_INDEX
                     MIC_INDEX = select_microphone()
                     continue
                 with sr.Microphone(device_index=MIC_INDEX) as source:
@@ -198,42 +197,6 @@ def write():
                             last_interaction_time = time.time()
                         else:
                             logging.debug("Wake word not detected, continuing...")
-                    else:
-                        post("status", "listening")
-                        logging.info("🎤 Listening for next command...")
-                        audio = recognizer.listen(source, timeout=10)
-                        command = recognizer.recognize_google(audio) # type: ignore
-                        logging.info(f"📥 Command: {command}")
-                        post("log", ("user", command))
-                        post("status", "thinking")
-
-                        logging.info("🤖 Sending command to agent...")
-                        response = executor.invoke({"input": command})
-                        content = response["output"]
-                        logging.info(f"✅ Agent responded: {content}")
-
-                        print("Jarvis:", content)
-                        speak_text(content)
-                        tts_queue.join()
-                        time.sleep(0.5)
-                        last_interaction_time = time.time()
-
-                        if last_interaction_time is not None and time.time() - last_interaction_time > CONVERSATION_TIMEOUT:
-                            logging.info("[STATE] Exiting conversation mode due to timeout.")
-                            conversation_mode = False
-                fail_count = 0  # Reset fail count on success
-            except Exception as mic_error:
-                logging.error(f"[MIC] Could not open microphone or audio stream: {mic_error}")
-                fail_count += 1
-                if fail_count >= MAX_FAILS:
-                    print("Too many microphone errors. Please select a new device or check your hardware.")
-                    MIC_INDEX = select_microphone()
-                    fail_count = 0
-                    continue
-                time.sleep(2)
-
-            except sr.WaitTimeoutError:
-                logging.warning("⚠️ Timeout waiting for audio.")
                 if (
                     conversation_mode
                     and last_interaction_time is not None
