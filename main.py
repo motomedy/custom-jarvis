@@ -205,111 +205,141 @@ def write():
                     logging.info("🎤 Listening for wake word...")
                     speak_text("Listening for wake word.")
                     tts_queue.join()
+                    # Safely close previous mic if open
                     if mic is not None:
-                        mic.__exit__(None, None, None)
+                        try:
+                            if hasattr(mic, 'stream') and mic.stream is not None:
+                                mic.__exit__(None, None, None)
+                        except Exception:
+                            pass
                         mic = None
-                    mic = sr.Microphone(device_index=MIC_INDEX)
-                    with mic as source:
-                        logging.info("[STATE] Microphone opened.")
-                        audio = recognizer.listen(source, timeout=30, phrase_time_limit=8)
                     try:
-                        transcript = recognizer.recognize_google(audio) # type: ignore
-                        logging.info(f"🗣 Heard: {transcript}")
-                        # Fuzzy wake word match
-                        if any(w in transcript.lower() for w in [TRIGGER_WORD.lower(), "jarv", "jervis"]):
-                            logging.info(f"🗣 Triggered by: {transcript}")
-                            post("log", ("user", transcript))
-                            logging.info("[STATE] Entering conversation mode.")
-                            speak_text("Yes sir?")
+                        mic = sr.Microphone(device_index=MIC_INDEX)
+                        with mic as source:
+                            logging.info("[STATE] Microphone opened.")
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=8)
+                        try:
+                            transcript = recognizer.recognize_google(audio) # type: ignore
+                            logging.info(f"🗣 Heard: {transcript}")
+                            # Fuzzy wake word match
+                            if any(w in transcript.lower() for w in [TRIGGER_WORD.lower(), "jarv", "jervis"]):
+                                logging.info(f"🗣 Triggered by: {transcript}")
+                                post("log", ("user", transcript))
+                                logging.info("[STATE] Entering conversation mode.")
+                                speak_text("Yes sir?")
+                                tts_queue.join()
+                                time.sleep(0.5)
+                                conversation_mode = True
+                                last_interaction_time = time.time()
+                            else:
+                                logging.debug("Wake word not detected, continuing...")
+                                speak_text("Wake word not detected. Listening again.")
+                                tts_queue.join()
+                        except sr.UnknownValueError:
+                            logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
+                            # Save failed audio for debugging
+                            import wave, datetime
+                            nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                            with wave.open(f"wakeword_fail_{nowstr}.wav", "wb") as wf:
+                                wf.setnchannels(1)
+                                wf.setsampwidth(2)
+                                wf.setframerate(16000)
+                                wf.writeframes(audio.get_raw_data())
+                            speak_text("Didn't catch that. Please say 'Jarvis' again.")
                             tts_queue.join()
-                            time.sleep(0.5)
-                            conversation_mode = True
-                            last_interaction_time = time.time()
-                        else:
-                            logging.debug("Wake word not detected, continuing...")
-                            speak_text("Wake word not detected. Listening again.")
+                        except Exception as e:
+                            logging.exception("❌ Error during wake word recognition (inner):")
+                            speak_text("Error during wake word recognition. Please try again.")
                             tts_queue.join()
-                    except sr.UnknownValueError:
-                        logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
-                        # Save failed audio for debugging
-                        import wave, datetime
-                        nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        with wave.open(f"wakeword_fail_{nowstr}.wav", "wb") as wf:
-                            wf.setnchannels(1)
-                            wf.setsampwidth(2)
-                            wf.setframerate(16000)
-                            wf.writeframes(audio.get_raw_data())
-                        speak_text("Didn't catch that. Please say 'Jarvis' again.")
+                    except (AssertionError, AttributeError) as e:
+                        logging.error(f"Microphone error: {e}")
+                        speak_text("Microphone error. Please check your device.")
                         tts_queue.join()
+                        time.sleep(1)
+                        continue
                     except Exception as e:
-                        logging.exception("❌ Error during wake word recognition (inner):")
+                        logging.exception("❌ Error during wake word recognition (outer):")
                         speak_text("Error during wake word recognition. Please try again.")
                         tts_queue.join()
+                        time.sleep(1)
+                        continue
                 else:
                     post("status", "listening")
                     logging.info("🎤 Listening for user command in conversation mode...")
                     speak_text("Listening for your command.")
                     tts_queue.join()
+                    # Safely close previous mic if open
                     if mic is not None:
-                        mic.__exit__(None, None, None)
+                        try:
+                            if hasattr(mic, 'stream') and mic.stream is not None:
+                                mic.__exit__(None, None, None)
+                        except Exception:
+                            pass
                         mic = None
-                    mic = sr.Microphone(device_index=MIC_INDEX)
-                    with mic as source:
-                        logging.info("[STATE] Microphone opened.")
-                        audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
                     try:
-                        user_command = recognizer.recognize_google(audio)
-                        logging.info(f"🗣 User command: {user_command}")
-                        post("log", ("user", user_command))
-                        # Check for exit command
-                        if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
-                            speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
-                            tts_queue.join()
-                            conversation_mode = False
-                            unrecognized_attempts = 0
-                            continue
-                        # Here you can process the user_command with your agent/executor
-                        response = executor.invoke({"input": user_command})
-                        speak_text(str(response["output"]))
-                        tts_queue.join()
-                        last_interaction_time = time.time()
-                        unrecognized_attempts = 0
-                    except sr.WaitTimeoutError:
-                        logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
-                        speak_text("No input detected. Returning to wake word mode.")
-                        tts_queue.join()
-                        conversation_mode = False
-                        unrecognized_attempts = 0
-                    except sr.UnknownValueError:
-                        logging.warning("⚠️ Could not understand audio in conversation mode.")
-                        # Save failed audio for debugging
-                        import wave, datetime
-                        nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        with wave.open(f"conversation_fail_{nowstr}.wav", "wb") as wf:
-                            wf.setnchannels(1)
-                            wf.setsampwidth(2)
-                            wf.setframerate(16000)
-                            wf.writeframes(audio.get_raw_data())
-                        unrecognized_attempts += 1
-                        if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
-                            speak_text("Too many failed attempts. Returning to wake word mode.")
-                            tts_queue.join()
-                            conversation_mode = False
-                            unrecognized_attempts = 0
-                        else:
-                            speak_text("Sorry, I didn't catch that. Please repeat.")
+                        mic = sr.Microphone(device_index=MIC_INDEX)
+                        with mic as source:
+                            logging.info("[STATE] Microphone opened.")
+                            audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
+                        try:
+                            user_command = recognizer.recognize_google(audio)
+                            logging.info(f"🗣 User command: {user_command}")
+                            post("log", ("user", user_command))
+                            # Check for exit command
+                            if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
+                                speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
+                                tts_queue.join()
+                                conversation_mode = False
+                                unrecognized_attempts = 0
+                                continue
+                            # Here you can process the user_command with your agent/executor
+                            response = executor.invoke({"input": user_command})
+                            speak_text(str(response["output"]))
                             tts_queue.join()
                             last_interaction_time = time.time()
-                    except AssertionError as e:
-                        logging.error(f"Microphone assertion error: {e}")
-                        speak_text("Microphone error. Returning to wake word mode.")
-                        tts_queue.join()
-                        conversation_mode = False
-                        unrecognized_attempts = 0
-                        time.sleep(1)
-                        continue
-                    except AttributeError as e:
-                        logging.error(f"Microphone attribute error: {e}")
+                            unrecognized_attempts = 0
+                        except sr.WaitTimeoutError:
+                            logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
+                            speak_text("No input detected. Returning to wake word mode.")
+                            tts_queue.join()
+                            conversation_mode = False
+                            unrecognized_attempts = 0
+                        except sr.UnknownValueError:
+                            logging.warning("⚠️ Could not understand audio in conversation mode.")
+                            # Save failed audio for debugging
+                            import wave, datetime
+                            nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                            with wave.open(f"conversation_fail_{nowstr}.wav", "wb") as wf:
+                                wf.setnchannels(1)
+                                wf.setsampwidth(2)
+                                wf.setframerate(16000)
+                                wf.writeframes(audio.get_raw_data())
+                            unrecognized_attempts += 1
+                            if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
+                                speak_text("Too many failed attempts. Returning to wake word mode.")
+                                tts_queue.join()
+                                conversation_mode = False
+                                unrecognized_attempts = 0
+                            else:
+                                speak_text("Sorry, I didn't catch that. Please repeat.")
+                                tts_queue.join()
+                                last_interaction_time = time.time()
+                        except (AssertionError, AttributeError) as e:
+                            logging.error(f"Microphone error: {e}")
+                            speak_text("Microphone error. Returning to wake word mode.")
+                            tts_queue.join()
+                            conversation_mode = False
+                            unrecognized_attempts = 0
+                            time.sleep(1)
+                            continue
+                        except Exception as e:
+                            logging.exception("❌ Error during user command recognition or processing:")
+                            speak_text("Sorry, something went wrong.")
+                            tts_queue.join()
+                            conversation_mode = False
+                            unrecognized_attempts = 0
+                    except (AssertionError, AttributeError) as e:
+                        logging.error(f"Microphone error: {e}")
                         speak_text("Microphone error. Returning to wake word mode.")
                         tts_queue.join()
                         conversation_mode = False
@@ -317,7 +347,7 @@ def write():
                         time.sleep(1)
                         continue
                     except Exception as e:
-                        logging.exception("❌ Error during user command recognition or processing:")
+                        logging.exception("❌ Error during user command recognition or processing (outer):")
                         speak_text("Sorry, something went wrong.")
                         tts_queue.join()
                         conversation_mode = False
