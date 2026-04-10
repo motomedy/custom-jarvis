@@ -70,29 +70,42 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 # TTS engine setup (initialize once)
 tts_engine = pyttsx3.init()
 logging.debug("[TTS] pyttsx3 engine initialized.")
-# Set a specific macOS voice for reliability
+# Set a specific English female voice for reliability
 voices = tts_engine.getProperty("voices")
 logging.debug(f"[TTS] Available voices:")
 for v in voices:
     logging.debug(f"- {v.name} ({v.id}) [{v.languages}]")
 selected = False
-selected = False
-# Try Tünde first, then Moira
+# Try to select 'laura' voice first
 for voice in voices:
-    if "tünde" in voice.name.lower():
+    if "laura" in voice.name.lower() and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
         tts_engine.setProperty("voice", voice.id)
-        logging.debug(f"[TTS] Using voice: {voice.name}")
+        logging.debug(f"[TTS] Using LAura voice: {voice.name}")
         selected = True
         break
+# If not found, try other preferred English female voices
+if not selected:
+    preferred_names = ["samantha", "karen", "victoria", "fiona", "serena", "martha", "tessa", "moira", "joana", "luciana", "allison", "ava", "susan"]
+    for name in preferred_names:
+        for voice in voices:
+            if name in voice.name.lower() and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
+                tts_engine.setProperty("voice", voice.id)
+                logging.debug(f"[TTS] Using English female voice: {voice.name}")
+                selected = True
+                break
+        if selected:
+            break
+# Fallback: pick any English female voice
 if not selected:
     for voice in voices:
-        if "moira" in voice.name.lower():
+        if ("female" in voice.name.lower() or "woman" in voice.name.lower()) and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
             tts_engine.setProperty("voice", voice.id)
-            logging.debug(f"[TTS] Using fallback voice: {voice.name}")
+            logging.debug(f"[TTS] Using fallback English female voice: {voice.name}")
             selected = True
             break
+# If still not found, use the default voice
 if not selected:
-    logging.debug("[TTS] 'Tünde' and 'Moira' voices not found, using default.")
+    logging.debug("[TTS] No English female voice found, using default.")
 tts_engine.setProperty("rate", 180)
 tts_engine.setProperty("volume", 1.0)
 
@@ -118,10 +131,10 @@ def write():
     last_interaction_time = None
 
     try:
-        with mic as source:
-            recognizer.adjust_for_ambient_noise(source)
-            while True:
-                try:
+        while True:
+            try:
+                with mic as source:
+                    recognizer.adjust_for_ambient_noise(source)
                     if not conversation_mode:
                         post("status", "idle")
                         logging.info("🎤 Listening for wake word...")
@@ -144,7 +157,6 @@ def write():
                         audio = recognizer.listen(source, timeout=10)
                         command = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"📥 Command: {command}")
-                        
                         post("log", ("user", command))
                         post("status", "thinking")
 
@@ -161,22 +173,22 @@ def write():
                             logging.info("⌛ Timeout: Returning to wake word mode.")
                             conversation_mode = False
 
-                except sr.WaitTimeoutError:
-                    logging.warning("⚠️ Timeout waiting for audio.")
-                    if (
-                        conversation_mode
-                        and last_interaction_time is not None
-                        and time.time() - last_interaction_time > CONVERSATION_TIMEOUT
-                    ):
-                        logging.info(
-                            "⌛ No input in conversation mode. Returning to wake word mode."
-                        )
-                        conversation_mode = False
-                except sr.UnknownValueError:
-                    logging.warning("⚠️ Could not understand audio.")
-                except Exception as e:
-                    logging.error(f"❌ Error during recognition or tool call: {e}")
-                    time.sleep(1)
+            except sr.WaitTimeoutError:
+                logging.warning("⚠️ Timeout waiting for audio.")
+                if (
+                    conversation_mode
+                    and last_interaction_time is not None
+                    and time.time() - last_interaction_time > CONVERSATION_TIMEOUT
+                ):
+                    logging.info(
+                        "⌛ No input in conversation mode. Returning to wake word mode."
+                    )
+                    conversation_mode = False
+            except sr.UnknownValueError:
+                logging.warning("⚠️ Could not understand audio.")
+            except Exception as e:
+                logging.error(f"❌ Error during recognition or tool call: {e}")
+                time.sleep(1)
 
     except Exception as e:
         logging.critical(f"❌ Critical error in main loop: {e}")
