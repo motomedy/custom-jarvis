@@ -86,29 +86,32 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
 
+
 # TTS engine setup (initialize once)
-tts_engine = pyttsx3.init()
-logging.debug("[TTS] pyttsx3 engine initialized.")
-# Always use Samantha as the default TTS voice if available
-voices = tts_engine.getProperty("voices")
-selected = False
-for voice in voices:
-    if "samantha" in voice.name.lower():
-        tts_engine.setProperty("voice", voice.id)
-        logging.info(f"[TTS] Using Samantha voice: {voice.name}")
-        selected = True
-        break
-if not selected:
+def set_tts_voice(engine):
+    voices = engine.getProperty("voices")
+    selected = False
     for voice in voices:
-        if ("female" in voice.name.lower() or "woman" in voice.name.lower()) and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
-            tts_engine.setProperty("voice", voice.id)
-            logging.info(f"[TTS] Using fallback English female voice: {voice.name}")
+        if "samantha" in voice.name.lower():
+            engine.setProperty("voice", voice.id)
+            logging.info(f"[TTS] Using Samantha voice: {voice.name}")
             selected = True
             break
-if not selected:
-    logging.warning("[TTS] No English female voice found, using default.")
-tts_engine.setProperty("rate", 180)
-tts_engine.setProperty("volume", 1.0)
+    if not selected:
+        for voice in voices:
+            if ("female" in voice.name.lower() or "woman" in voice.name.lower()) and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
+                engine.setProperty("voice", voice.id)
+                logging.info(f"[TTS] Using fallback English female voice: {voice.name}")
+                selected = True
+                break
+    if not selected:
+        logging.warning("[TTS] No English female voice found, using default.")
+    engine.setProperty("rate", 180)
+    engine.setProperty("volume", 1.0)
+
+tts_engine = pyttsx3.init()
+set_tts_voice(tts_engine)
+logging.debug("[TTS] pyttsx3 engine initialized.")
 
 
 # TTS background thread setup
@@ -136,6 +139,7 @@ def tts_worker():
                 # Attempt to re-initialize the TTS engine if it fails
                 try:
                     tts_engine = pyttsx3.init()
+                    set_tts_voice(tts_engine)
                     logging.info("[TTS] pyttsx3 engine re-initialized after failure.")
                 except Exception as reinit_e:
                     logging.exception("[TTS] Failed to re-initialize pyttsx3 engine:")
