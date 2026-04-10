@@ -182,7 +182,7 @@ def write():
                     if not conversation_mode:
                         post("status", "idle")
                         logging.info("🎤 Listening for wake word...")
-                        audio = recognizer.listen(source, timeout=10)
+                        audio = recognizer.listen(source, timeout=30)
                         transcript = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"🗣 Heard: {transcript}")
 
