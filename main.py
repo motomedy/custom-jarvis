@@ -166,6 +166,14 @@ def write():
         last_resource_log = time.time()
         fail_count = 0
         MAX_FAILS = 5
+        # Calibrate for background noise ONCE at startup
+        with sr.Microphone(device_index=MIC_INDEX) as source:
+            logging.info("[STATE] Microphone opened for initial calibration.")
+            speak_text("Calibrating for background noise, please wait.")
+            tts_queue.join()
+            recognizer.adjust_for_ambient_noise(source, duration=1)
+        logging.info("[STATE] Calibration complete.")
+        calibrated = True
         while True:
             try:
                 mics = sr.Microphone.list_microphone_names()
@@ -177,6 +185,13 @@ def write():
                     speak_text("Microphone device not found. Please select a new device.")
                     tts_queue.join()
                     MIC_INDEX = select_microphone()
+                    # Recalibrate after device change
+                    with sr.Microphone(device_index=MIC_INDEX) as source:
+                        logging.info("[STATE] Microphone opened for re-calibration.")
+                        speak_text("Calibrating for background noise, please wait.")
+                        tts_queue.join()
+                        recognizer.adjust_for_ambient_noise(source, duration=1)
+                    logging.info("[STATE] Calibration complete.")
                     continue
                 if not conversation_mode:
                     post("status", "idle")
@@ -186,9 +201,6 @@ def write():
                     try:
                         with sr.Microphone(device_index=MIC_INDEX) as source:
                             logging.info("[STATE] Microphone opened.")
-                            speak_text("Calibrating for background noise, please wait.")
-                            tts_queue.join()
-                            recognizer.adjust_for_ambient_noise(source, duration=1)
                             audio = recognizer.listen(source, timeout=30, phrase_time_limit=5)
                         transcript = recognizer.recognize_google(audio) # type: ignore
                         logging.info(f"🗣 Heard: {transcript}")
@@ -233,9 +245,6 @@ def write():
                     try:
                         with sr.Microphone(device_index=MIC_INDEX) as source:
                             logging.info("[STATE] Microphone opened.")
-                            speak_text("Calibrating for background noise, please wait.")
-                            tts_queue.join()
-                            recognizer.adjust_for_ambient_noise(source, duration=1)
                             audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
                         user_command = recognizer.recognize_google(audio)
                         logging.info(f"🗣 User command: {user_command}")
