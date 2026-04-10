@@ -147,8 +147,25 @@ def tts_worker():
         finally:
             tts_queue.task_done()
 
+
+# TTS thread watchdog
+def ensure_tts_thread():
+    global tts_thread
+    if not tts_thread.is_alive():
+        logging.warning("[TTS] TTS thread was not alive. Restarting...")
+        tts_thread = threading.Thread(target=tts_worker, daemon=True)
+        tts_thread.start()
+
 tts_thread = threading.Thread(target=tts_worker, daemon=True)
 tts_thread.start()
+
+# Safe join with timeout
+def safe_tts_join(timeout=10):
+    ensure_tts_thread()
+    try:
+        tts_queue.join(timeout=timeout)
+    except Exception as e:
+        logging.warning(f"[TTS] tts_queue.join() failed or timed out: {e}")
 
 def speak_text(text: str):
     tts_queue.put(text)
@@ -175,25 +192,25 @@ def write():
                     logging.error(f"  Index {idx}: {name}")
                 print("[JARVIS] Microphone device not found. Please select a new device.")
                 speak_text("Microphone device not found. Please select a new device.")
-                tts_queue.join()
+                safe_tts_join()
                 MIC_INDEX = select_microphone()
             with sr.Microphone(device_index=MIC_INDEX) as source:
                 logging.info("[STATE] Microphone opened for initial calibration.")
                 speak_text("Calibrating for background noise, please wait.")
-                tts_queue.join()
+                safe_tts_join()
                 try:
                     recognizer.adjust_for_ambient_noise(source, duration=1)
                 except AssertionError as e:
                     logging.critical(f"[MIC ERROR] Could not calibrate microphone: {e}")
                     print("[JARVIS] Microphone calibration failed. Please check your device and try again.")
                     speak_text("Microphone calibration failed. Please check your device and try again.")
-                    tts_queue.join()
+                    safe_tts_join()
                     return
         except Exception as e:
             logging.critical(f"[MIC ERROR] Exception during microphone calibration: {e}")
             print("[JARVIS] Microphone calibration failed due to an unexpected error.")
             speak_text("Microphone calibration failed due to an unexpected error.")
-            tts_queue.join()
+            safe_tts_join()
             return
         logging.info("[STATE] Calibration complete.")
         calibrated = True
@@ -212,13 +229,13 @@ def write():
                         logging.error(f"  Index {idx}: {name}")
                     print("[JARVIS] Microphone device not found. Please select a new device.")
                     speak_text("Microphone device not found. Please select a new device.")
-                    tts_queue.join()
+                    safe_tts_join()
                     MIC_INDEX = select_microphone()
                     # Recalibrate after device change
                     with sr.Microphone(device_index=MIC_INDEX) as source:
                         logging.info("[STATE] Microphone opened for re-calibration.")
                         speak_text("Calibrating for background noise, please wait.")
-                        tts_queue.join()
+                        safe_tts_join()
                         recognizer.adjust_for_ambient_noise(source, duration=1)
                     logging.info("[STATE] Calibration complete.")
                     continue
@@ -227,7 +244,7 @@ def write():
                     post("status", "idle")
                     logging.info("🎤 Listening for wake word...")
                     speak_text("Listening for wake word.")
-                    tts_queue.join()
+                    safe_tts_join()
                     # Safely close previous mic if open
                     if mic is not None:
                         try:
@@ -250,14 +267,14 @@ def write():
                                 post("log", ("user", transcript))
                                 logging.info("[STATE] Entering conversation mode.")
                                 speak_text("Yes sir?")
-                                tts_queue.join()
+                                safe_tts_join()
                                 time.sleep(0.5)
                                 conversation_mode = True
                                 last_interaction_time = time.time()
                             else:
                                 logging.debug("Wake word not detected, continuing...")
                                 speak_text("Wake word not detected. Listening again.")
-                                tts_queue.join()
+                                safe_tts_join()
                         except sr.UnknownValueError:
                             logging.warning("Wake word not recognized (UnknownValueError). Prompting user to try again.")
                             # Save failed audio for debugging
@@ -269,28 +286,28 @@ def write():
                                 wf.setframerate(16000)
                                 wf.writeframes(audio.get_raw_data())
                             speak_text("Didn't catch that. Please say 'Jarvis' again.")
-                            tts_queue.join()
+                            safe_tts_join()
                         except Exception as e:
                             logging.exception("❌ Error during wake word recognition (inner):")
                             speak_text("Error during wake word recognition. Please try again.")
-                            tts_queue.join()
+                            safe_tts_join()
                     except (AssertionError, AttributeError) as e:
                         logging.error(f"Microphone error: {e}")
                         speak_text("Microphone error. Please check your device.")
-                        tts_queue.join()
+                        safe_tts_join()
                         time.sleep(1)
                         continue
                     except Exception as e:
                         logging.exception("❌ Error during wake word recognition (outer):")
                         speak_text("Error during wake word recognition. Please try again.")
-                        tts_queue.join()
+                        safe_tts_join()
                         time.sleep(1)
                         continue
                 else:
                     post("status", "listening")
                     logging.info("🎤 Listening for user command in conversation mode...")
                     speak_text("Listening for your command.")
-                    tts_queue.join()
+                    safe_tts_join()
                     # Safely close previous mic if open
                     if mic is not None:
                         try:
@@ -311,20 +328,20 @@ def write():
                             # Check for exit command
                             if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
                                 speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
-                                tts_queue.join()
+                                safe_tts_join()
                                 conversation_mode = False
                                 unrecognized_attempts = 0
                                 continue
                             # Here you can process the user_command with your agent/executor
                             response = executor.invoke({"input": user_command})
                             speak_text(str(response["output"]))
-                            tts_queue.join()
+                            safe_tts_join()
                             last_interaction_time = time.time()
                             unrecognized_attempts = 0
                         except sr.WaitTimeoutError:
                             logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
                             speak_text("No input detected. Returning to wake word mode.")
-                            tts_queue.join()
+                            safe_tts_join()
                             conversation_mode = False
                             unrecognized_attempts = 0
                         except sr.UnknownValueError:
@@ -340,17 +357,17 @@ def write():
                             unrecognized_attempts += 1
                             if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
                                 speak_text("Too many failed attempts. Returning to wake word mode.")
-                                tts_queue.join()
+                                safe_tts_join()
                                 conversation_mode = False
                                 unrecognized_attempts = 0
                             else:
                                 speak_text("Sorry, I didn't catch that. Please repeat.")
-                                tts_queue.join()
+                                safe_tts_join()
                                 last_interaction_time = time.time()
                         except (AssertionError, AttributeError) as e:
                             logging.error(f"Microphone error: {e}")
                             speak_text("Microphone error. Returning to wake word mode.")
-                            tts_queue.join()
+                            safe_tts_join()
                             conversation_mode = False
                             unrecognized_attempts = 0
                             time.sleep(1)
