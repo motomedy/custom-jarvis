@@ -66,33 +66,44 @@ agent = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
 executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
-# TTS setup
+
+# TTS engine setup (initialize once)
+tts_engine = pyttsx3.init()
+logging.debug("[TTS] pyttsx3 engine initialized.")
+# Set a specific macOS voice for reliability
+voices = tts_engine.getProperty("voices")
+logging.debug(f"[TTS] Available voices:")
+for v in voices:
+    logging.debug(f"- {v.name} ({v.id}) [{v.languages}]")
+selected = False
+selected = False
+# Try Tünde first, then Moira
+for voice in voices:
+    if "tünde" in voice.name.lower():
+        tts_engine.setProperty("voice", voice.id)
+        logging.debug(f"[TTS] Using voice: {voice.name}")
+        selected = True
+        break
+if not selected:
+    for voice in voices:
+        if "moira" in voice.name.lower():
+            tts_engine.setProperty("voice", voice.id)
+            logging.debug(f"[TTS] Using fallback voice: {voice.name}")
+            selected = True
+            break
+if not selected:
+    logging.debug("[TTS] 'Tünde' and 'Moira' voices not found, using default.")
+tts_engine.setProperty("rate", 180)
+tts_engine.setProperty("volume", 1.0)
+
 def speak_text(text: str):
     post("status", "speaking")
     post("log", ("jarvis", text))
     try:
-        engine = pyttsx3.init()
-        logging.debug("[TTS] pyttsx3 engine initialized.")
-        # Set a specific macOS voice for reliability
-        voices = engine.getProperty("voices")
-        logging.debug(f"[TTS] Available voices:")
-        for v in voices:
-            logging.debug(f"- {v.name} ({v.id}) [{v.languages}]")
-        selected = False
-        for voice in voices:
-            if "alex" in voice.name.lower():
-                engine.setProperty("voice", voice.id)
-                logging.debug(f"[TTS] Using voice: {voice.name}")
-                selected = True
-                break
-        if not selected:
-            logging.debug("[TTS] 'Alex' voice not found, using default.")
-        engine.setProperty("rate", 180)
-        engine.setProperty("volume", 1.0)
         logging.debug(f"[TTS] Speaking: {text}")
-        engine.say(text)
+        tts_engine.say(text)
         logging.debug("[TTS] Called engine.say()")
-        engine.runAndWait()
+        tts_engine.runAndWait()
         logging.debug("[TTS] Called engine.runAndWait()")
         time.sleep(0.3)
     except Exception as e:
