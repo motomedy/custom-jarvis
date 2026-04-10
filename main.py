@@ -32,15 +32,23 @@ try:
 except ImportError:
     def post(event, data=None): pass
 
-try:
+def select_microphone():
     print("Available microphone devices:")
-    for idx, name in enumerate(sr.Microphone.list_microphone_names()):
+    mics = sr.Microphone.list_microphone_names()
+    for idx, name in enumerate(mics):
         print(f"  Index {idx}: {name}")
-except Exception as e:
-    print(f"Could not list microphones: {e}")
+    while True:
+        try:
+            idx = int(input("Select microphone device index: "))
+            if 0 <= idx < len(mics):
+                print(f"Selected: {mics[idx]}")
+                return idx
+            else:
+                print("Invalid index. Try again.")
+        except Exception:
+            print("Please enter a valid integer.")
 
-# Set this to the correct index after checking the printed list
-MIC_INDEX = 2
+MIC_INDEX = select_microphone()
 TRIGGER_WORD = "jarvis"
 CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
 
@@ -80,42 +88,24 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 # TTS engine setup (initialize once)
 tts_engine = pyttsx3.init()
 logging.debug("[TTS] pyttsx3 engine initialized.")
-# Set a specific English female voice for reliability
+# Always use Samantha as the default TTS voice if available
 voices = tts_engine.getProperty("voices")
-logging.debug(f"[TTS] Available voices:")
-for v in voices:
-    logging.debug(f"- {v.name} ({v.id}) [{v.languages}]")
 selected = False
-# Try to select 'laura' voice first
 for voice in voices:
-    if "laura" in voice.name.lower() and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
+    if "samantha" in voice.name.lower():
         tts_engine.setProperty("voice", voice.id)
-        logging.debug(f"[TTS] Using LAura voice: {voice.name}")
+        logging.info(f"[TTS] Using Samantha voice: {voice.name}")
         selected = True
         break
-# If not found, try other preferred English female voices
-if not selected:
-    preferred_names = ["samantha", "karen", "victoria", "fiona", "serena", "martha", "tessa", "moira", "joana", "luciana", "allison", "ava", "susan"]
-    for name in preferred_names:
-        for voice in voices:
-            if name in voice.name.lower() and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
-                tts_engine.setProperty("voice", voice.id)
-                logging.debug(f"[TTS] Using English female voice: {voice.name}")
-                selected = True
-                break
-        if selected:
-            break
-# Fallback: pick any English female voice
 if not selected:
     for voice in voices:
         if ("female" in voice.name.lower() or "woman" in voice.name.lower()) and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
             tts_engine.setProperty("voice", voice.id)
-            logging.debug(f"[TTS] Using fallback English female voice: {voice.name}")
+            logging.info(f"[TTS] Using fallback English female voice: {voice.name}")
             selected = True
             break
-# If still not found, use the default voice
 if not selected:
-    logging.debug("[TTS] No English female voice found, using default.")
+    logging.warning("[TTS] No English female voice found, using default.")
 tts_engine.setProperty("rate", 180)
 tts_engine.setProperty("volume", 1.0)
 
@@ -172,8 +162,17 @@ def write():
     try:
         resource_log_interval = 30  # seconds
         last_resource_log = time.time()
+        fail_count = 0
+        MAX_FAILS = 5
         while True:
             try:
+                mics = sr.Microphone.list_microphone_names()
+                if MIC_INDEX >= len(mics):
+                    logging.error(f"Selected microphone index {MIC_INDEX} not available. Available devices:")
+                    for idx, name in enumerate(mics):
+                        logging.error(f"  Index {idx}: {name}")
+                    print("Microphone device not found. Please restart and select a valid device.")
+                    sys.exit(1)
                 with sr.Microphone(device_index=MIC_INDEX) as source:
                     logging.info("[STATE] Microphone opened.")
                     recognizer.adjust_for_ambient_noise(source)
@@ -186,10 +185,11 @@ def write():
 
                         if TRIGGER_WORD.lower() in transcript.lower():
                             logging.info(f"🗣 Triggered by: {transcript}")
-                            # Wake word detected, entering convo mode
                             post("log", ("user", transcript))
                             logging.info("[STATE] Entering conversation mode.")
                             speak_text("Yes sir?")
+                            tts_queue.join()
+                            time.sleep(0.5)
                             conversation_mode = True
                             last_interaction_time = time.time()
                         else:
@@ -210,14 +210,20 @@ def write():
 
                         print("Jarvis:", content)
                         speak_text(content)
+                        tts_queue.join()
+                        time.sleep(0.5)
                         last_interaction_time = time.time()
 
                         if last_interaction_time is not None and time.time() - last_interaction_time > CONVERSATION_TIMEOUT:
                             logging.info("[STATE] Exiting conversation mode due to timeout.")
                             conversation_mode = False
-                    logging.info("[STATE] Microphone closed.")
+                fail_count = 0  # Reset fail count on success
             except Exception as mic_error:
                 logging.error(f"[MIC] Could not open microphone or audio stream: {mic_error}")
+                fail_count += 1
+                if fail_count >= MAX_FAILS:
+                    print("Too many microphone errors. Exiting.")
+                    sys.exit(1)
                 time.sleep(2)
 
             except sr.WaitTimeoutError:
@@ -231,21 +237,17 @@ def write():
                         "⌛ No input in conversation mode. Returning to wake word mode."
                     )
                     conversation_mode = False
-                # Add a short delay after timeout in conversation mode
                 if conversation_mode:
                     time.sleep(1)
             except sr.UnknownValueError:
                 logging.warning("⚠️ Could not understand audio.")
-                # Add a short delay after failed recognition in conversation mode
                 if conversation_mode:
                     time.sleep(1)
             except Exception as e:
                 logging.exception("❌ Error during recognition or tool call:")
                 time.sleep(1)
-            # Step 1: Add a small sleep to prevent high CPU usage
             time.sleep(0.1)
 
-            # Step 5: Periodically log CPU and memory usage
             now = time.time()
             if now - last_resource_log > resource_log_interval:
                 cpu = psutil.cpu_percent(interval=None)
