@@ -182,8 +182,12 @@ def write():
                 print(f"Processing: {user_command}")
                 try:
                     response = executor.invoke({"input": user_command})
-                    print(f"Jarvis: {response['output']}")
-                    speak_text(response['output'])
+                    output = response.get('output', '')
+                    print(f"DEBUG: Raw response: {response}")
+                    if not output or not isinstance(output, str):
+                        output = "Sorry, I did not understand that command."
+                    print(f"Jarvis: {output}")
+                    speak_text(output)
                     safe_tts_join()
                     commands_processed += 1
                 except Exception as e:
