@@ -46,7 +46,7 @@ MIC_INDEX = select_macbook_microphone()
 TRIGGER_WORD = "jarvis"
 CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
 
-logging.basicConfig(level=logging.DEBUG)  # logging
+logging.basicConfig(level=os.environ.get("JARVIS_LOGLEVEL", "WARNING"))  # Default to WARNING, override with env var
 
 # api_key = os.getenv("OPENAI_API_KEY") removed because it's not needed for ollama
 # org_id = os.getenv("OPENAI_ORG_ID") removed because it's not needed for ollama
@@ -145,7 +145,12 @@ def speak_text(text: str):
     tts_worker.speak(text)
 
 def safe_tts_join():
-    tts_worker.queue.join()
+    # Only join if the thread is alive and not stopping
+    if tts_worker.is_alive() and not tts_worker._stop_event.is_set():
+        try:
+            tts_worker.queue.join()
+        except Exception as e:
+            logging.warning(f"[TTS] Exception during queue join: {e}")
 
 
 # Main interaction loop
@@ -170,7 +175,8 @@ def write():
                 print("[JARVIS] Microphone device not found. Please select a new device.")
                 speak_text("Microphone device not found. Please select a new device.")
                 safe_tts_join()
-                MIC_INDEX = select_microphone()
+                MIC_INDEX = select_macbook_microphone()
+            # Always use context manager for microphone
             with sr.Microphone(device_index=MIC_INDEX) as source:
                 logging.info("[STATE] Microphone opened for initial calibration.")
                 speak_text("Calibrating for background noise, please wait.")
@@ -465,7 +471,14 @@ def write():
                     logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
                     last_resource_log = now
         finally:
-            pass  # No mic cleanup needed; always use context manager
+            # No mic cleanup needed; always use context manager
+            # Ensure TTS worker is stopped on exit
+            if tts_worker.is_alive():
+                tts_worker.stop()
+                try:
+                    tts_worker.join(timeout=2)
+                except Exception as e:
+                    logging.warning(f"[TTS] Exception during TTS worker join: {e}")
 
     except Exception as e:
         logging.exception("❌ Critical error in main loop:")
