@@ -80,106 +80,72 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
 
-# TTS engine setup (initialize once)
-def set_tts_voice(engine):
-    voices = engine.getProperty("voices")
-    selected = False
-    for voice in voices:
-        if "samantha" in voice.name.lower():
-            engine.setProperty("voice", voice.id)
-            logging.info(f"[TTS] Using Samantha voice: {voice.name}")
-            selected = True
-            break
-    if not selected:
-        for voice in voices:
-            if ("female" in voice.name.lower() or "woman" in voice.name.lower()) and ("en" in str(voice.languages).lower() or "english" in voice.name.lower()):
-                engine.setProperty("voice", voice.id)
-                logging.info(f"[TTS] Using fallback English female voice: {voice.name}")
-                selected = True
-                break
-    if not selected:
-        logging.warning("[TTS] No English female voice found, using default.")
-    engine.setProperty("rate", 180)
-    engine.setProperty("volume", 1.0)
 
+# --- Robust TTS Worker for macOS (thread-safe, new engine per utterance) ---
+TTS_VOICE_NAME = "Samantha"  # macOS voice
 
-tts_engine = pyttsx3.init()
-set_tts_voice(tts_engine)
-# macOS/pyttsx3 workaround: speak a silent utterance to lock in Samantha
-try:
-    tts_engine.say(" ")
-    tts_engine.runAndWait()
-    logging.debug("[TTS] Performed silent utterance to lock in Samantha voice.")
-except Exception as e:
-    logging.warning(f"[TTS] Silent utterance workaround failed: {e}")
-logging.debug("[TTS] pyttsx3 engine initialized.")
+class TTSWorker(threading.Thread):
+    def __init__(self):
+        super().__init__(daemon=True)
+        self.queue = queue.Queue()
+        self._stop_event = threading.Event()
 
-
-# TTS background thread setup
-tts_queue = queue.Queue()
-
-def tts_worker():
-    global tts_engine
-    while True:
-        text = tts_queue.get()
-        try:
-            if text is None:
-                break
-            post("status", "speaking")
-            post("log", ("jarvis", text))
-            logging.info("[STATE] TTS starting.")
+    def run(self):
+        while not self._stop_event.is_set():
             try:
-                # Always force Samantha voice before every utterance (macOS workaround)
-                set_tts_voice(tts_engine)
-                current_voice_id = tts_engine.getProperty("voice")
-                voices = tts_engine.getProperty("voices")
-                current_voice = next((v for v in voices if v.id == current_voice_id), None)
-                logging.debug(f"[TTS] Current voice: {current_voice.name if current_voice else current_voice_id}")
+                text = self.queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            try:
+                engine = pyttsx3.init()
+                # Select Samantha voice
+                selected = False
+                for v in engine.getProperty('voices'):
+                    if TTS_VOICE_NAME.lower() in v.name.lower():
+                        engine.setProperty('voice', v.id)
+                        selected = True
+                        logging.info(f"[TTS] Using Samantha voice: {v.name}")
+                        break
+                if not selected:
+                    for v in engine.getProperty('voices'):
+                        if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
+                            engine.setProperty('voice', v.id)
+                            logging.info(f"[TTS] Using fallback English female voice: {v.name}")
+                            selected = True
+                            break
+                if not selected:
+                    logging.warning("[TTS] No English female voice found, using default.")
+                engine.setProperty("rate", 180)
+                engine.setProperty("volume", 1.0)
                 logging.debug(f"[TTS] Speaking: {text}")
-                tts_engine.say(text)
-                logging.debug("[TTS] Called engine.say()")
-                tts_engine.runAndWait()
-                logging.debug("[TTS] Called engine.runAndWait()")
-                time.sleep(0.3)
+                post("status", "speaking")
+                post("log", ("jarvis", text))
+                engine.say(text)
+                engine.runAndWait()
+                engine.stop()
+                time.sleep(0.1)
             except Exception as e:
                 logging.exception("❌ TTS failed:")
-                # Attempt to re-initialize the TTS engine if it fails
-                try:
-                    tts_engine = pyttsx3.init()
-                    set_tts_voice(tts_engine)
-                    logging.info("[TTS] pyttsx3 engine re-initialized after failure.")
-                except Exception as reinit_e:
-                    logging.exception("[TTS] Failed to re-initialize pyttsx3 engine:")
             finally:
                 logging.info("[STATE] TTS finished.")
                 post("status", "idle")
-        except Exception as fatal_e:
-            logging.exception("[TTS] Fatal error in TTS worker loop:")
-        finally:
-            tts_queue.task_done()
+                self.queue.task_done()
 
+    def speak(self, text):
+        self.queue.put(text)
 
-# TTS thread watchdog
-def ensure_tts_thread():
-    global tts_thread
-    if not tts_thread.is_alive():
-        logging.warning("[TTS] TTS thread was not alive. Restarting...")
-        tts_thread = threading.Thread(target=tts_worker, daemon=True)
-        tts_thread.start()
+    def stop(self):
+        self._stop_event.set()
 
-tts_thread = threading.Thread(target=tts_worker, daemon=True)
-tts_thread.start()
-
-# Safe join with timeout
-def safe_tts_join():
-    ensure_tts_thread()
-    try:
-        tts_queue.join()
-    except Exception as e:
-        logging.warning(f"[TTS] tts_queue.join() failed: {e}")
+# Instantiate and start the TTS worker
+tts_worker = TTSWorker()
+tts_worker.start()
 
 def speak_text(text: str):
-    tts_queue.put(text)
+    tts_worker.speak(text)
+
+def safe_tts_join():
+    tts_worker.queue.join()
 
 
 # Main interaction loop
