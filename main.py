@@ -337,106 +337,105 @@ def write():
                             logging.info("[STATE] Microphone opened.")
                             try:
                                 audio = recognizer.listen(source, timeout=30, phrase_time_limit=10)
-                                try:
-                                    user_command = recognizer.recognize_google(audio)
-                                    logging.info(f"🗣 User command: {user_command}")
-                                    post("log", ("user", user_command))
-                                    # Check for exit command
-                                    if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
-                                        speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
-                                        safe_tts_join()
-                                        conversation_mode = False
-                                        unrecognized_attempts = 0
-                                        continue
-                                    # Self-test command
-                                    if any(cmd in user_command.lower() for cmd in SELF_TEST_COMMANDS):
-                                        speak_text("Running self-test. Checking TTS and microphone...")
-                                        safe_tts_join()
-                                        # TTS test
-                                        try:
-                                            set_tts_voice(tts_engine)
-                                            tts_engine.say("This is a test of the Jarvis voice system. If you hear this, TTS is working.")
-                                            tts_engine.runAndWait()
-                                            tts_ok = True
-                                        except Exception as e:
-                                            tts_ok = False
-                                        # Microphone test
-                                        try:
-                                            with sr.Microphone(device_index=MIC_INDEX) as source:
-                                                speak_text("Testing microphone. Please say something after the beep.")
-                                                safe_tts_join()
-                                                import sys
-                                                sys.stdout.write('\a')
-                                                sys.stdout.flush()
-                                                audio = recognizer.listen(source, timeout=5, phrase_time_limit=3)
-                                                speak_text("Recording complete. Attempting recognition.")
-                                                safe_tts_join()
-                                                try:
-                                                    result = recognizer.recognize_google(audio)
-                                                    mic_ok = True
-                                                except Exception:
-                                                    mic_ok = False
-                                        except Exception:
-                                            mic_ok = False
-                                        # Report
-                                        if tts_ok and mic_ok:
-                                            speak_text("Self-test complete. Both TTS and microphone are working correctly.")
-                                        elif not tts_ok and mic_ok:
-                                            speak_text("Microphone is working, but TTS failed. Please check your sound settings.")
-                                        elif tts_ok and not mic_ok:
-                                            speak_text("TTS is working, but the microphone did not capture your voice. Please check your input device.")
-                                        else:
-                                            speak_text("Both TTS and microphone tests failed. Please check your hardware and restart Jarvis.")
-                                        safe_tts_join()
-                                        last_interaction_time = time.time()
-                                        unrecognized_attempts = 0
-                                        continue
-                                    # ...existing code...
-                                    response = executor.invoke({"input": user_command})
-                                    speak_text(str(response["output"]))
+                                user_command = recognizer.recognize_google(audio)
+                                logging.info(f"🗣 User command: {user_command}")
+                                post("log", ("user", user_command))
+                                # Check for exit command
+                                if any(cmd in user_command.lower() for cmd in EXIT_COMMANDS):
+                                    speak_text("Exiting conversation mode. Say 'Jarvis' to wake me up again.")
+                                    safe_tts_join()
+                                    conversation_mode = False
+                                    unrecognized_attempts = 0
+                                    continue
+                                # Self-test command
+                                if any(cmd in user_command.lower() for cmd in SELF_TEST_COMMANDS):
+                                    speak_text("Running self-test. Checking TTS and microphone...")
+                                    safe_tts_join()
+                                    # TTS test
+                                    try:
+                                        set_tts_voice(tts_engine)
+                                        tts_engine.say("This is a test of the Jarvis voice system. If you hear this, TTS is working.")
+                                        tts_engine.runAndWait()
+                                        tts_ok = True
+                                    except Exception as e:
+                                        tts_ok = False
+                                    # Microphone test
+                                    try:
+                                        with sr.Microphone(device_index=MIC_INDEX) as source:
+                                            speak_text("Testing microphone. Please say something after the beep.")
+                                            safe_tts_join()
+                                            import sys
+                                            sys.stdout.write('\a')
+                                            sys.stdout.flush()
+                                            audio = recognizer.listen(source, timeout=5, phrase_time_limit=3)
+                                            speak_text("Recording complete. Attempting recognition.")
+                                            safe_tts_join()
+                                            try:
+                                                result = recognizer.recognize_google(audio)
+                                                mic_ok = True
+                                            except Exception:
+                                                mic_ok = False
+                                    except Exception:
+                                        mic_ok = False
+                                    # Report
+                                    if tts_ok and mic_ok:
+                                        speak_text("Self-test complete. Both TTS and microphone are working correctly.")
+                                    elif not tts_ok and mic_ok:
+                                        speak_text("Microphone is working, but TTS failed. Please check your sound settings.")
+                                    elif tts_ok and not mic_ok:
+                                        speak_text("TTS is working, but the microphone did not capture your voice. Please check your input device.")
+                                    else:
+                                        speak_text("Both TTS and microphone tests failed. Please check your hardware and restart Jarvis.")
                                     safe_tts_join()
                                     last_interaction_time = time.time()
                                     unrecognized_attempts = 0
-                                except sr.WaitTimeoutError:
-                                    logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
-                                    speak_text("No input detected. Returning to wake word mode.")
+                                    continue
+                                # ...existing code...
+                                response = executor.invoke({"input": user_command})
+                                speak_text(str(response["output"]))
+                                safe_tts_join()
+                                last_interaction_time = time.time()
+                                unrecognized_attempts = 0
+                            except sr.WaitTimeoutError:
+                                logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
+                                speak_text("No input detected. Returning to wake word mode.")
+                                safe_tts_join()
+                                conversation_mode = False
+                                unrecognized_attempts = 0
+                            except sr.UnknownValueError:
+                                logging.warning("⚠️ Could not understand audio in conversation mode.")
+                                # Save failed audio for debugging
+                                import wave, datetime
+                                nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                                with wave.open(f"conversation_fail_{nowstr}.wav", "wb") as wf:
+                                    wf.setnchannels(1)
+                                    wf.setsampwidth(2)
+                                    wf.setframerate(16000)
+                                    wf.writeframes(audio.get_raw_data())
+                                unrecognized_attempts += 1
+                                if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
+                                    speak_text("Too many failed attempts. Returning to wake word mode.")
                                     safe_tts_join()
                                     conversation_mode = False
                                     unrecognized_attempts = 0
-                                except sr.UnknownValueError:
-                                    logging.warning("⚠️ Could not understand audio in conversation mode.")
-                                    # Save failed audio for debugging
-                                    import wave, datetime
-                                    nowstr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                                    with wave.open(f"conversation_fail_{nowstr}.wav", "wb") as wf:
-                                        wf.setnchannels(1)
-                                        wf.setsampwidth(2)
-                                        wf.setframerate(16000)
-                                        wf.writeframes(audio.get_raw_data())
-                                    unrecognized_attempts += 1
-                                    if unrecognized_attempts >= MAX_UNRECOGNIZED_ATTEMPTS:
-                                        speak_text("Too many failed attempts. Returning to wake word mode.")
-                                        safe_tts_join()
-                                        conversation_mode = False
-                                        unrecognized_attempts = 0
-                                    else:
-                                        speak_text("Sorry, I didn't catch that. Please repeat.")
-                                        safe_tts_join()
-                                        last_interaction_time = time.time()
-                                except (AssertionError, AttributeError) as e:
-                                    logging.error(f"Microphone error: {e}")
-                                    speak_text("Microphone error. Returning to wake word mode.")
+                                else:
+                                    speak_text("Sorry, I didn't catch that. Please repeat.")
                                     safe_tts_join()
-                                    conversation_mode = False
-                                    unrecognized_attempts = 0
-                                    time.sleep(1)
-                                    break
-                                except Exception as e:
-                                    logging.exception("❌ Error during user command recognition or processing:")
-                                    speak_text("Sorry, something went wrong.")
-                                    safe_tts_join()
-                                    conversation_mode = False
-                                    unrecognized_attempts = 0
+                                    last_interaction_time = time.time()
+                            except (AssertionError, AttributeError) as e:
+                                logging.error(f"Microphone error: {e}")
+                                speak_text("Microphone error. Returning to wake word mode.")
+                                safe_tts_join()
+                                conversation_mode = False
+                                unrecognized_attempts = 0
+                                time.sleep(1)
+                                break
+                            except Exception as e:
+                                logging.exception("❌ Error during user command recognition or processing:")
+                                speak_text("Sorry, something went wrong.")
+                                safe_tts_join()
+                                conversation_mode = False
+                                unrecognized_attempts = 0
                     except (AssertionError, AttributeError) as e:
                         logging.error(f"Microphone error (outer): {e}")
                         speak_text("Critical microphone error. Please check your device and restart Jarvis.")
