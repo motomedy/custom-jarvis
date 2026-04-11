@@ -386,11 +386,15 @@ def write():
                                         last_interaction_time = time.time()
                                         unrecognized_attempts = 0
                                         continue
-                                    # ...existing code...
+                                    # --- Response time measurement ---
+                                    import time as _time
+                                    response_start = _time.time()
                                     response = executor.invoke({"input": user_command})
                                     speak_text(str(response["output"]))
                                     safe_tts_join()
-                                    last_interaction_time = time.time()
+                                    response_end = _time.time()
+                                    print(f"Response time: {response_end - response_start:.2f} seconds")
+                                    last_interaction_time = _time.time()
                                     unrecognized_attempts = 0
                                 except sr.WaitTimeoutError:
                                     logging.info("⌛ No input in conversation mode. Returning to wake word mode.")
