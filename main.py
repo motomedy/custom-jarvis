@@ -162,46 +162,42 @@ def write():
     MAX_FAILED_ATTEMPTS = 5
     commands_processed = 0
     MAX_COMMANDS = 5
-    def write():
-        """Automated test: runs 5 specific commands, logs resources, and exits cleanly."""
-        test_commands = [
-            "Jarvis",
-            "introduce yourself",
-            "what you can do for me?",
-            "how to self improve you using all the tools you have?",
-            "good morning Jarvis"
-        ]
-        resource_log_interval = 30  # seconds
-        last_resource_log = time.time()
-        failed_attempts = 0
-        MAX_FAILED_ATTEMPTS = 5
-        commands_processed = 0
-        MAX_COMMANDS = 5
-        try:
-            for user_command in test_commands:
-                print(f"Processing: {user_command}")
-                try:
-                    response = executor.invoke({"input": user_command})
-                    output = response.get('output', '')
-                    print(f"DEBUG: Raw response: {response}")
-                    if not output or not isinstance(output, str):
-                        output = "Sorry, I did not understand that command."
-                    print(f"Jarvis: {output}")
-                    speak_text(output)
-                    safe_tts_join()
-                    commands_processed += 1
-                except Exception as e:
-                    print(f"Error processing command: {e}")
-                    failed_attempts += 1
-                now = time.time()
-                if now - last_resource_log > resource_log_interval:
-                    cpu = psutil.cpu_percent(interval=None)
-                    mem = psutil.virtual_memory()
-                    logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
-                    last_resource_log = now
-                if failed_attempts >= MAX_FAILED_ATTEMPTS:
-                    print("Too many failed attempts. Exiting test.")
-                    break
-        finally:
-            if tts_worker.is_alive():
-                tts_worker.stop()
+    test_commands = [
+        "Jarvis",
+        "introduce yourself",
+        "what you can do for me?",
+        "how to self improve you using all the tools you have?",
+        "good morning Jarvis"
+    ]
+    try:
+        for user_command in test_commands:
+            print(f"Processing: {user_command}")
+            try:
+                response = executor.invoke({"input": user_command})
+                output = response.get('output', '')
+                print(f"DEBUG: Raw response: {response}")
+                if not output or not isinstance(output, str):
+                    output = "Sorry, I did not understand that command."
+                print(f"Jarvis: {output}")
+                speak_text(output)
+                safe_tts_join()
+                commands_processed += 1
+            except Exception as e:
+                print(f"Error processing command: {e}")
+                failed_attempts += 1
+            now = time.time()
+            if now - last_resource_log > resource_log_interval:
+                cpu = psutil.cpu_percent(interval=None)
+                mem = psutil.virtual_memory()
+                logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
+                last_resource_log = now
+            if failed_attempts >= MAX_FAILED_ATTEMPTS:
+                print("Too many failed attempts. Exiting test.")
+                break
+    finally:
+        if tts_worker.is_alive():
+            tts_worker.stop()
+
+# Ensure the test runs when script is executed
+if __name__ == "__main__":
+    write()
