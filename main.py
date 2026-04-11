@@ -195,6 +195,8 @@ def write():
                 print("Too many failed attempts. Exiting test.")
                 break
     finally:
+        # Wait to ensure all TTS output is played before exiting
+        time.sleep(2)
         if tts_worker.is_alive():
             tts_worker.stop()
 
