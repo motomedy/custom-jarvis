@@ -44,7 +44,7 @@ def select_macbook_microphone():
 
 MIC_INDEX = select_macbook_microphone()
 TRIGGER_WORD = "jarvis"
-CONVERSATION_TIMEOUT = 30  # seconds of inactivity before exiting conversation mode
+CONVERSATION_TIMEOUT = 120  # seconds of inactivity before exiting conversation mode
 
 logging.basicConfig(level=os.environ.get("JARVIS_LOGLEVEL", "WARNING"))  # Default to WARNING, override with env var
 
@@ -167,6 +167,7 @@ def write():
         "Phased AI Assistant Build: 1. Learn Python, APIs, data structures, LLM basics. 2. Build simple chat loop, API calls, command routing. 3. Make a single-purpose assistant (e.g., search or scheduling). 4. Add session and long-term memory; define assistant identity (role, tone, permissions). 5. Implement tool orchestration (planning, delegation, reversible actions). 6. Add security: least-privilege, human approval, encryption, prompt-injection defense, audit logging. 7. Add observability: tracing, metrics, structured logs, failure/adversarial testing. 8. Scale to new workflows, reuse memory/policy/orchestration, add voice/multi-agent if stable. Recommended learning order: Python → APIs → prompt design → memory → tool use → security → orchestration/observability."
     ]
     try:
+        # Run test commands first
         for user_command in test_commands:
             print(f"Processing: {user_command}")
             try:
@@ -190,7 +191,27 @@ def write():
                 last_resource_log = now
             if failed_attempts >= MAX_FAILED_ATTEMPTS:
                 print("Too many failed attempts. Exiting test.")
+                return
+        # After test commands, enter interactive mode
+        print("\n--- Jarvis is now running interactively. Type your commands below (Ctrl+C to exit) ---")
+        while True:
+            try:
+                user_command = input("You: ").strip()
+                if not user_command:
+                    continue
+                response = executor.invoke({"input": user_command})
+                output = response.get('output', '')
+                print(f"DEBUG: Raw response: {response}")
+                if not output or not isinstance(output, str):
+                    output = "Sorry, I did not understand that command."
+                print(f"Jarvis: {output}")
+                speak_text(output)
+                safe_tts_join()
+            except (KeyboardInterrupt, EOFError):
+                print("\nExiting Jarvis.")
                 break
+            except Exception as e:
+                print(f"Error processing command: {e}")
     finally:
         # Wait to ensure all TTS output is played before exiting
         time.sleep(2)
