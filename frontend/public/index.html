@@ -70,13 +70,21 @@
     }
     function speak(text) {
       if ('speechSynthesis' in window) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'en-US';
-        // Try to set Samantha voice if available
-        const voices = window.speechSynthesis.getVoices();
-        const samantha = voices.find(v => v.name === 'Samantha');
-        if (samantha) utter.voice = samantha;
-        window.speechSynthesis.speak(utter);
+        try {
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = 'en-US';
+          const voices = window.speechSynthesis.getVoices();
+          const samantha = voices.find(v => v.name === 'Samantha');
+          if (samantha) utter.voice = samantha;
+          utter.onerror = (e) => {
+            r.textContent += '\n[Voice error: ' + e.error + ']';
+            console.error('TTS error', e);
+          };
+          window.speechSynthesis.speak(utter);
+        } catch (e) {
+          r.textContent += '\n[Voice error: ' + e + ']';
+          console.error('TTS error', e);
+        }
       }
     }
     // On some browsers, voices may not be loaded immediately
@@ -87,16 +95,17 @@
       e.preventDefault();
       r.textContent = 'Thinking...';
       const q = f.q.value;
-      let timeoutId;
+      let timeoutId, frozenId;
       try {
-        // Show spinner if waiting > 1s
         timeoutId = setTimeout(() => { r.textContent = 'Still thinking... (slow network or backend)'; }, 1000);
+        frozenId = setTimeout(() => { r.textContent = 'Request timed out. Please try again.'; }, 15000);
         const res = await fetch('/api/ask', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ input: q })
         });
         clearTimeout(timeoutId);
+        clearTimeout(frozenId);
         if (!res.ok) {
           r.textContent = 'Server error: ' + res.status;
           console.error('API error', res);
@@ -114,7 +123,8 @@
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        r.textContent = 'Network error: ' + err;
+        clearTimeout(frozenId);
+        r.textContent = 'Backend offline or unreachable. Please check if the server is running.';
         console.error('Network/API error', err);
       }
     };

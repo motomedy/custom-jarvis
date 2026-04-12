@@ -1,0 +1,22 @@
+[Supervisor] Starting backend at Sun Apr 12 06:50:36 CEST 2026
+Auto-selected MacBook Air Microphone at index 2
+Starting JARVIS web server on http://localhost:8340
+ * Serving Flask app 'main'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8340
+ * Running on http://192.168.178.31:8340
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 529-731-913
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:50:47] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:51:03] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:52:58] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:53:39] "[36mGET / HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:56:41] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:56:44] "[36mGET / HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:56:59] "[36mGET / HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:57:02] "[36mGET / HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:57:16] "POST /api/ask HTTP/1.1" 200 -
