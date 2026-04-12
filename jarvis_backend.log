@@ -35,3 +35,337 @@ INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:59:52] "GET /api/health HTTP/1.1" 20
 INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 06:59:57] "GET /api/health HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:02] "GET /api/health HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:31] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:31] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:36] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:41] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:46] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:51] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:56] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:00:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:01] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:06] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:11] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:16] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:21] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:26] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:01:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:06] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:44] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:02:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:07] "GET /api/health HTTP/1.1" 200 -
+/Users/ahmedmansi/jarvis_ollam/tools/duckduckgo.py:18: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  with DDGS() as ddgs:
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:08] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:27] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:44] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:03:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:17] "GET /api/health HTTP/1.1" 200 -
+/Users/ahmedmansi/jarvis_ollam/tools/duckduckgo.py:18: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  with DDGS() as ddgs:
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:19] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:46] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:54] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:04:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:38] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:44] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:05:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:33] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:06:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:12] "GET /api/health HTTP/1.1" 200 -
+Auto-selected MacBook Air Microphone at index 2
+Starting JARVIS web server on http://localhost:8340
+[API] Received data: {'input': 'Jarvis'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! I'm Jarvis. How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'Jarvis', 'output': "Hello! I'm Jarvis. How can I assist you today?"}
+[API] Received data: {'input': 'Jarvis'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! I'm Jarvis. How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'Jarvis', 'output': "Hello! I'm Jarvis. How can I assist you today?"}
+[API] Received data: {'input': 'i want you to implement selfimprovement on yourself,you have the skill to do it just search for it.you have access to superpower agents,find them they will help you'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm excited to help you with your self-improvement journey! To do this, I'll follow these steps:
+
+1. **Search for Self-Improvement Resources**: I'll use DuckDuckGo to find the best self-improvement books, articles, and courses.
+2. **Identify Superpower Agents**: I'll look for agents who specialize in self-improvement and are available to help.
+3. **Implement Self-Improvement**: Once I have the resources and agents, I'll use them to help you improve yourself.
+
+Let's start by searching for self-improvement resources. I'll use DuckDuckGo to find the best self-improvement books, articles, and courses.[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'i want you to implement selfimprovement on yourself,you have the skill to do it just search for it.you have access to superpower agents,find them they will help you', 'output': "I'm excited to help you with your self-improvement journey! To do this, I'll follow these steps:\n\n1. **Search for Self-Improvement Resources**: I'll use DuckDuckGo to find the best self-improvement books, articles, and courses.\n2. **Identify Superpower Agents**: I'll look for agents who specialize in self-improvement and are available to help.\n3. **Implement Self-Improvement**: Once I have the resources and agents, I'll use them to help you improve yourself.\n\nLet's start by searching for self-improvement resources. I'll use DuckDuckGo to find the best self-improvement books, articles, and courses."}
+[API] Received data: {'input': 'search for how to build memory for jarvis ai assistant'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `duckduckgo_search` with `{'query': 'how to build memory for jarvis ai assistant'}`
+
+
+[0m[36;1m[1;3mApologies, I couldn't find any results for: "how to build memory for jarvis ai assistant".[0m
+[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'search for how to build memory for jarvis ai assistant', 'output': 'Apologies, I couldn\'t find any results for: "how to build memory for jarvis ai assistant".'}
+[API] Received data: {'input': 'search it on the web'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'll perform a web search for you. What would you like to search for?[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'search it on the web', 'output': "I'll perform a web search for you. What would you like to search for?"}
+[API] Received data: {'input': 'search for memory skills and other basic must have skill for jarvis ai asssistant.'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `duckduckgo_search` with `{'query': 'memory skills and other basic must have skill for jarvis ai assistant'}`
+
+
+[0m[36;1m[1;3mCertainly sir, here's the top result for: "memory skills and other basic must have skill for jarvis ai assistant"
+
+🔹 Title: 个性化llm的memory方向怎么样? - 知乎
+🔗 URL: https://www.zhihu.com/question/1957619016504967717
+[0m
+[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'search for memory skills and other basic must have skill for jarvis ai asssistant.', 'output': 'Certainly sir, here\'s the top result for: "memory skills and other basic must have skill for jarvis ai assistant"\n\n🔹 Title: 个性化llm的memory方向怎么样? - 知乎\n🔗 URL: https://www.zhihu.com/question/1957619016504967717\n'}
+[API] Received data: {'input': 'open the that webpage and read it'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm sorry, but I cannot open webpages or read content from the internet. I can help you with tasks like searching for information, taking screenshots, or managing your todo list. Let me know how I can assist you![0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'open the that webpage and read it', 'output': "I'm sorry, but I cannot open webpages or read content from the internet. I can help you with tasks like searching for information, taking screenshots, or managing your todo list. Let me know how I can assist you!"}
+[API] Received data: {'input': 'can you open files on my computer?'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm unable to open files on your computer directly, as I don't have access to your local files or system resources. However, I can help you with tasks like searching for files, viewing file contents, or guiding you through the process of opening files using tools like `ls` or `notepad` if you're using a specific operating system. Let me know how I can assist![0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'can you open files on my computer?', 'output': "I'm unable to open files on your computer directly, as I don't have access to your local files or system resources. However, I can help you with tasks like searching for files, viewing file contents, or guiding you through the process of opening files using tools like `ls` or `notepad` if you're using a specific operating system. Let me know how I can assist!"}
+[API] Received data: {'input': 'i have macos and all your files on my desctop'}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mIf you want to access my files on your Mac, you can simply navigate to the folder where I'm located, which is on your desktop. Let me know if you need help with that![0m
+
+[1m> Finished chain.[0m
+[API] Agent response: {'input': 'i have macos and all your files on my desctop', 'output': "If you want to access my files on your Mac, you can simply navigate to the folder where I'm located, which is on your desktop. Let me know if you need help with that!"}
+[API] Received data: {'input': 'i have macos and all your files on my desctop,where i want to give you access '}
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mTo give me access to your desktop on macOS, you can follow these steps:
+
+1. **Open Finder** on your Mac.
+2. **Navigate to your Desktop** (it's usually located in the "Users" section, and you can see it as a folder).
+3. **Right-click on your Desktop** and select **"Show All Files"**.
+4. **Locate the folder** named **"Desktop"** (or **"Users"** if it's a shared folder).
+5. **Right-click on the "Desktop" folder** and select **"Get Info"**.
+6. **In the Get Info window**, make sure that **"Sharing"** is enabled and that **"Everyone"** is selected.
+7. **Click "Apply"** to save the changes.
+
+Alternatively, you can use the terminal to grant access:
+
+1. Open Terminal.
+2. Type the following command and press Enter:
+   ```
+   sudo chmod -R a+rwx /Users/your_username/Desktop
+   ```
+   Replace `your_username` with your actual username.
+
+This will grant you read, write, and execute permissions to your desktop folder. Let me know if you need further assistance![0m
+
+[1m> Finished chain.[0m
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:16] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:29] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:29] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:31] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:53] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:07:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:08:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:20] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:09:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:18] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:37] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:50] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:10:59] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:18] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:11:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:12:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:27] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:31] "POST /api/ask HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:32] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:37] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:42] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:47] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:52] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:13:57] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:02] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:07] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:12] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:17] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:22] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [12/Apr/2026 07:14:27] "GET /api/health HTTP/1.1" 200 -
