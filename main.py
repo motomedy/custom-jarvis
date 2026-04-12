@@ -89,26 +89,7 @@ class TTSWorker(threading.Thread):
         super().__init__(daemon=True)
         self.queue = queue.Queue()
         self._stop_event = threading.Event()
-        self.engine = pyttsx3.init()
-        # Select Samantha or fallback voice once
-        selected = False
-        for v in self.engine.getProperty('voices'):
-            if TTS_VOICE_NAME.lower() in v.name.lower():
-                self.engine.setProperty('voice', v.id)
-                selected = True
-                logging.info(f"[TTS] Using Samantha voice: {v.name}")
-                break
-        if not selected:
-            for v in self.engine.getProperty('voices'):
-                if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
-                    self.engine.setProperty('voice', v.id)
-                    logging.info(f"[TTS] Using fallback English female voice: {v.name}")
-                    selected = True
-                    break
-        if not selected:
-            logging.warning("[TTS] No English female voice found, using default.")
-        self.engine.setProperty("rate", 140)
-        self.engine.setProperty("volume", 1.0)
+        # No persistent engine! See run()
 
     def run(self):
         while not self._stop_event.is_set():
@@ -116,16 +97,44 @@ class TTSWorker(threading.Thread):
                 text = self.queue.get(timeout=0.1)
             except queue.Empty:
                 continue
+            engine = None
             try:
                 logging.debug(f"[TTS] Speaking: {text}")
                 post("status", "speaking")
                 post("log", ("jarvis", text))
-                self.engine.say(text)
-                self.engine.runAndWait()
+                # Create a new engine for each utterance (macOS safe)
+                engine = pyttsx3.init()
+                # Select Samantha or fallback voice
+                selected = False
+                for v in engine.getProperty('voices'):
+                    if TTS_VOICE_NAME.lower() in v.name.lower():
+                        engine.setProperty('voice', v.id)
+                        selected = True
+                        logging.info(f"[TTS] Using Samantha voice: {v.name}")
+                        break
+                if not selected:
+                    for v in engine.getProperty('voices'):
+                        if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
+                            engine.setProperty('voice', v.id)
+                            logging.info(f"[TTS] Using fallback English female voice: {v.name}")
+                            selected = True
+                            break
+                if not selected:
+                    logging.warning("[TTS] No English female voice found, using default.")
+                engine.setProperty("rate", 140)
+                engine.setProperty("volume", 1.0)
+                engine.say(text)
+                engine.runAndWait()
                 time.sleep(0.1)
             except Exception as e:
                 logging.exception("❌ TTS failed:")
             finally:
+                if engine is not None:
+                    try:
+                        engine.stop()
+                    except Exception:
+                        pass
+                    del engine
                 logging.info("[STATE] TTS finished.")
                 post("status", "idle")
                 self.queue.task_done()
@@ -161,61 +170,45 @@ def write():
     MAX_FAILED_ATTEMPTS = 5
     commands_processed = 0
     MAX_COMMANDS = 5
-    test_commands = [
-        "Jarvis",
-        "Phased AI Assistant Build: 1. Learn Python, APIs, data structures, LLM basics. 2. Build simple chat loop, API calls, command routing. 3. Make a single-purpose assistant (e.g., search or scheduling). 4. Add session and long-term memory; define assistant identity (role, tone, permissions). 5. Implement tool orchestration (planning, delegation, reversible actions). 6. Add security: least-privilege, human approval, encryption, prompt-injection defense, audit logging. 7. Add observability: tracing, metrics, structured logs, failure/adversarial testing. 8. Scale to new workflows, reuse memory/policy/orchestration, add voice/multi-agent if stable. Recommended learning order: Python → APIs → prompt design → memory → tool use → security → orchestration/observability."
-    ]
-    try:
-        # Run test commands first
-        for user_command in test_commands:
-            print(f"Processing: {user_command}")
+    # After test commands, enter interactive mode
+    print("\n--- Jarvis is now running in voice mode. Speak your command after the beep (Ctrl+C to exit) ---")
+    recognizer = sr.Recognizer()
+    mic = sr.Microphone(device_index=MIC_INDEX)
+    while True:
+        try:
+            with mic as source:
+                print("Listening...")
+                recognizer.adjust_for_ambient_noise(source)
+                print("Beep!")
+                audio = recognizer.listen(source)
             try:
-                response = executor.invoke({"input": user_command})
-                output = response.get('output', '')
-                print(f"DEBUG: Raw response: {response}")
-                if not output or not isinstance(output, str):
-                    output = "Sorry, I did not understand that command."
-                print(f"Jarvis: {output}")
-                speak_text(output)
-                safe_tts_join()
-                commands_processed += 1
-            except Exception as e:
-                print(f"Error processing command: {e}")
-                failed_attempts += 1
-            now = time.time()
-            if now - last_resource_log > resource_log_interval:
-                cpu = psutil.cpu_percent(interval=None)
-                mem = psutil.virtual_memory()
-                logging.info(f"[RESOURCE] CPU: {cpu}%, Memory: {mem.percent}% used ({mem.used // (1024*1024)}MB/{mem.total // (1024*1024)}MB)")
-                last_resource_log = now
-            if failed_attempts >= MAX_FAILED_ATTEMPTS:
-                print("Too many failed attempts. Exiting test.")
-                return
-        # After test commands, enter interactive mode
-        print("\n--- Jarvis is now running interactively. Type your commands below (Ctrl+C to exit) ---")
-        while True:
-            try:
-                user_command = input("You: ").strip()
-                if not user_command:
-                    continue
-                response = executor.invoke({"input": user_command})
-                output = response.get('output', '')
-                print(f"DEBUG: Raw response: {response}")
-                if not output or not isinstance(output, str):
-                    output = "Sorry, I did not understand that command."
-                print(f"Jarvis: {output}")
-                speak_text(output)
-                safe_tts_join()
-            except (KeyboardInterrupt, EOFError):
-                print("\nExiting Jarvis.")
-                break
-            except Exception as e:
-                print(f"Error processing command: {e}")
-    finally:
-        # Wait to ensure all TTS output is played before exiting
-        time.sleep(2)
-        if tts_worker.is_alive():
-            tts_worker.stop()
+                user_command = recognizer.recognize_google(audio)
+                print(f"You said: {user_command}")
+            except sr.UnknownValueError:
+                print("Sorry, I did not catch that. Please try again.")
+                continue
+            except sr.RequestError as e:
+                print(f"Speech recognition error: {e}")
+                continue
+            if not user_command:
+                continue
+            response = executor.invoke({"input": user_command})
+            output = response.get('output', '')
+            print(f"DEBUG: Raw response: {response}")
+            if not output or not isinstance(output, str):
+                output = "Sorry, I did not understand that command."
+            print(f"Jarvis: {output}")
+            speak_text(output)
+            safe_tts_join()
+        except (KeyboardInterrupt, EOFError):
+            print("\nExiting Jarvis.")
+            break
+        except Exception as e:
+            print(f"Error processing command: {e}")
+    # Wait to ensure all TTS output is played before exiting
+    safe_tts_join()
+    if tts_worker.is_alive():
+        tts_worker.stop()
 
 # Ensure the test runs when script is executed
 if __name__ == "__main__":
