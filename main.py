@@ -164,10 +164,7 @@ def write():
     MAX_COMMANDS = 5
     test_commands = [
         "Jarvis",
-        "introduce yourself",
-        "what you can do for me?",
-        "how to self improve you using all the tools you have?",
-        "good morning Jarvis"
+        "Phased AI Assistant Build: 1. Learn Python, APIs, data structures, LLM basics. 2. Build simple chat loop, API calls, command routing. 3. Make a single-purpose assistant (e.g., search or scheduling). 4. Add session and long-term memory; define assistant identity (role, tone, permissions). 5. Implement tool orchestration (planning, delegation, reversible actions). 6. Add security: least-privilege, human approval, encryption, prompt-injection defense, audit logging. 7. Add observability: tracing, metrics, structured logs, failure/adversarial testing. 8. Scale to new workflows, reuse memory/policy/orchestration, add voice/multi-agent if stable. Recommended learning order: Python → APIs → prompt design → memory → tool use → security → orchestration/observability."
     ]
     try:
         for user_command in test_commands:
