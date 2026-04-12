@@ -24,8 +24,33 @@
     <button type="button" id="mic" title="Speak" style="background:#23293a;color:#00eaff;">🎤</button>
   </form>
   <pre id="r">Hello! How can I help you today?</pre>
+  <div id="status-bubble" style="position:fixed;right:1.5em;bottom:1.5em;z-index:1000;background:#23293a;color:#fff;padding:0.7em 1.2em;border-radius:2em;box-shadow:0 2px 8px #0008;font-size:1em;display:flex;align-items:center;gap:0.5em;user-select:none;transition:background 0.2s;"><span id="status-dot" style="display:inline-block;width:0.8em;height:0.8em;border-radius:50%;background:#ffb300;"></span><span id="status-text">Checking...</span></div>
   <script>
     const f = document.getElementById('f');
+    // --- Status Bubble ---
+    const statusBubble = document.getElementById('status-bubble');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    async function checkBackend() {
+      try {
+        const res = await fetch('/api/health', {cache:'no-store'});
+        if (res.ok) {
+          statusDot.style.background = '#00eaff';
+          statusBubble.style.background = '#1a2b2f';
+          statusText.textContent = 'Backend: Online';
+        } else {
+          statusDot.style.background = '#ff4d4d';
+          statusBubble.style.background = '#3a2323';
+          statusText.textContent = 'Backend: Offline';
+        }
+      } catch {
+        statusDot.style.background = '#ff4d4d';
+        statusBubble.style.background = '#3a2323';
+        statusText.textContent = 'Backend: Offline';
+      }
+    }
+    setInterval(checkBackend, 5000);
+    checkBackend();
     const r = document.getElementById('r');
     const micBtn = document.getElementById('mic');
     let recognizing = false;
