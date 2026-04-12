@@ -89,6 +89,26 @@ class TTSWorker(threading.Thread):
         super().__init__(daemon=True)
         self.queue = queue.Queue()
         self._stop_event = threading.Event()
+        self.engine = pyttsx3.init()
+        # Select Samantha or fallback voice once
+        selected = False
+        for v in self.engine.getProperty('voices'):
+            if TTS_VOICE_NAME.lower() in v.name.lower():
+                self.engine.setProperty('voice', v.id)
+                selected = True
+                logging.info(f"[TTS] Using Samantha voice: {v.name}")
+                break
+        if not selected:
+            for v in self.engine.getProperty('voices'):
+                if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
+                    self.engine.setProperty('voice', v.id)
+                    logging.info(f"[TTS] Using fallback English female voice: {v.name}")
+                    selected = True
+                    break
+        if not selected:
+            logging.warning("[TTS] No English female voice found, using default.")
+        self.engine.setProperty("rate", 140)
+        self.engine.setProperty("volume", 1.0)
 
     def run(self):
         while not self._stop_event.is_set():
@@ -97,32 +117,11 @@ class TTSWorker(threading.Thread):
             except queue.Empty:
                 continue
             try:
-                engine = pyttsx3.init()
-                # Select Samantha voice
-                selected = False
-                for v in engine.getProperty('voices'):
-                    if TTS_VOICE_NAME.lower() in v.name.lower():
-                        engine.setProperty('voice', v.id)
-                        selected = True
-                        logging.info(f"[TTS] Using Samantha voice: {v.name}")
-                        break
-                if not selected:
-                    for v in engine.getProperty('voices'):
-                        if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
-                            engine.setProperty('voice', v.id)
-                            logging.info(f"[TTS] Using fallback English female voice: {v.name}")
-                            selected = True
-                            break
-                if not selected:
-                    logging.warning("[TTS] No English female voice found, using default.")
-                engine.setProperty("rate", 140)
-                engine.setProperty("volume", 1.0)
                 logging.debug(f"[TTS] Speaking: {text}")
                 post("status", "speaking")
                 post("log", ("jarvis", text))
-                engine.say(text)
-                engine.runAndWait()
-                engine.stop()
+                self.engine.say(text)
+                self.engine.runAndWait()
                 time.sleep(0.1)
             except Exception as e:
                 logging.exception("❌ TTS failed:")
