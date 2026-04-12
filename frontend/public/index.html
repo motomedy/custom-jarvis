@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JARVIS Portal</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #181c24; color: #f3f6fa; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    h1 { color: #00eaff; margin-bottom: 0.5em; }
+    form { display: flex; gap: 0.5em; margin-bottom: 1em; }
+    input, button { font-size: 1.1em; padding: 0.5em; border-radius: 4px; border: none; }
+    input { width: 18em; }
+    button { background: #00eaff; color: #181c24; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #00b3c6; }
+    #r { background: #23293a; color: #fff; padding: 1em; border-radius: 6px; min-width: 20em; min-height: 4em; white-space: pre-wrap; }
+    @media (max-width: 600px) { input { width: 10em; } #r { min-width: 10em; } }
+  </style>
+</head>
+<body>
+  <h1>JARVIS Portal</h1>
+  <form id="f">
+    <input name="q" placeholder="Ask Jarvis..." autocomplete="off" required>
+    <button type="submit">Ask</button>
+    <button type="button" id="mic" title="Speak" style="background:#23293a;color:#00eaff;">🎤</button>
+  </form>
+  <pre id="r">Hello! How can I help you today?</pre>
+  <script>
+    const f = document.getElementById('f');
+    const r = document.getElementById('r');
+    const micBtn = document.getElementById('mic');
+    let recognizing = false;
+    let recognition;
+    const micHelp = document.createElement('div');
+    micHelp.style.margin = '0.5em 0 1em 0';
+    micHelp.style.color = '#ffb300';
+    document.body.insertBefore(micHelp, r);
+    function showMicHelp(msg) {
+      micHelp.textContent = msg;
+    }
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.onstart = () => { recognizing = true; micBtn.textContent = '🛑'; showMicHelp('Listening... Click 🛑 to stop.'); };
+      recognition.onend = () => { recognizing = false; micBtn.textContent = '🎤'; showMicHelp(''); };
+      recognition.onerror = e => {
+        recognizing = false; micBtn.textContent = '🎤';
+        let msg = 'Microphone error: ' + e.error;
+        if (e.error === 'not-allowed') msg += ' — Please allow microphone access in your browser.';
+        if (e.error === 'no-speech') msg += ' — No speech detected. Try again.';
+        if (e.error === 'aborted') msg += ' — Mic stopped unexpectedly.';
+        showMicHelp(msg);
+      };
+      recognition.onresult = e => {
+        const transcript = e.results[0][0].transcript;
+        f.q.value = transcript;
+        f.dispatchEvent(new Event('submit'));
+      };
+      micBtn.onclick = () => {
+        if (recognizing) { recognition.stop(); } else {
+          showMicHelp('If prompted, please allow microphone access.');
+          recognition.start();
+        }
+      };
+    } else {
+      micBtn.disabled = true;
+      micBtn.title = 'Speech recognition not supported';
+      showMicHelp('Speech recognition is not supported in this browser. Try Chrome or Edge on desktop.');
+    }
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        // Try to set Samantha voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const samantha = voices.find(v => v.name === 'Samantha');
+        if (samantha) utter.voice = samantha;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+    // On some browsers, voices may not be loaded immediately
+    if ('speechSynthesis' in window && typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
+      window.speechSynthesis.onvoiceschanged = () => {};
+    }
+    f.onsubmit = async e => {
+      e.preventDefault();
+      r.textContent = 'Thinking...';
+      const q = f.q.value;
+      let timeoutId;
+      try {
+        // Show spinner if waiting > 1s
+        timeoutId = setTimeout(() => { r.textContent = 'Still thinking... (slow network or backend)'; }, 1000);
+        const res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: q })
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          r.textContent = 'Server error: ' + res.status;
+          console.error('API error', res);
+          return;
+        }
+        const data = await res.json();
+        console.log('API response:', data);
+        if (data.output) {
+          r.textContent = data.output;
+          speak(data.output);
+        } else if (data.error) {
+          r.textContent = 'Error: ' + data.error;
+        } else {
+          r.textContent = 'No response from backend.';
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        r.textContent = 'Network error: ' + err;
+        console.error('Network/API error', err);
+      }
+    };
+  </script>
+</body>
+</html>
