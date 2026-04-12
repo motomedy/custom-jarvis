@@ -5,7 +5,7 @@ import logging
 import time
 import threading
 import queue
-import pyttsx3
+import subprocess
 from dotenv import load_dotenv
 import speech_recognition as sr
 from langchain_ollama import ChatOllama, OllamaLLM
@@ -82,83 +82,24 @@ executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
 # --- Robust TTS Worker for macOS (thread-safe, new engine per utterance) ---
-TTS_VOICE_NAME = "Samantha"  # macOS voice
 
-class TTSWorker(threading.Thread):
-    def __init__(self):
-        super().__init__(daemon=True)
-        self.queue = queue.Queue()
-        self._stop_event = threading.Event()
-        # No persistent engine! See run()
-
-    def run(self):
-        while not self._stop_event.is_set():
-            try:
-                text = self.queue.get(timeout=0.1)
-            except queue.Empty:
-                continue
-            engine = None
-            try:
-                logging.debug(f"[TTS] Speaking: {text}")
-                post("status", "speaking")
-                post("log", ("jarvis", text))
-                # Create a new engine for each utterance (macOS safe)
-                engine = pyttsx3.init()
-                # Select Samantha or fallback voice
-                selected = False
-                for v in engine.getProperty('voices'):
-                    if TTS_VOICE_NAME.lower() in v.name.lower():
-                        engine.setProperty('voice', v.id)
-                        selected = True
-                        logging.info(f"[TTS] Using Samantha voice: {v.name}")
-                        break
-                if not selected:
-                    for v in engine.getProperty('voices'):
-                        if ("female" in v.name.lower() or "woman" in v.name.lower()) and ("en" in str(v.languages).lower() or "english" in v.name.lower()):
-                            engine.setProperty('voice', v.id)
-                            logging.info(f"[TTS] Using fallback English female voice: {v.name}")
-                            selected = True
-                            break
-                if not selected:
-                    logging.warning("[TTS] No English female voice found, using default.")
-                engine.setProperty("rate", 140)
-                engine.setProperty("volume", 1.0)
-                engine.say(text)
-                engine.runAndWait()
-                time.sleep(0.1)
-            except Exception as e:
-                logging.exception("❌ TTS failed:")
-            finally:
-                if engine is not None:
-                    try:
-                        engine.stop()
-                    except Exception:
-                        pass
-                    del engine
-                logging.info("[STATE] TTS finished.")
-                post("status", "idle")
-                self.queue.task_done()
-
-    def speak(self, text):
-        self.queue.put(text)
-
-    def stop(self):
-        self._stop_event.set()
-
-# Instantiate and start the TTS worker
-tts_worker = TTSWorker()
-tts_worker.start()
-
+# --- macOS TTS using 'say' command ---
 def speak_text(text: str):
-    tts_worker.speak(text)
+    """Speak text using macOS 'say' command for reliable TTS."""
+    try:
+        logging.debug(f"[TTS] Speaking: {text}")
+        post("status", "speaking")
+        post("log", ("jarvis", text))
+        # Use 'Samantha' voice if available, fallback to default
+        subprocess.run(["say", "-v", "Samantha", text], check=True)
+    except Exception as e:
+        logging.exception("❌ TTS failed:")
+    finally:
+        post("status", "idle")
 
 def safe_tts_join():
-    # Only join if the thread is alive and not stopping
-    if tts_worker.is_alive() and not tts_worker._stop_event.is_set():
-        try:
-            tts_worker.queue.join()
-        except Exception as e:
-            logging.warning(f"[TTS] Exception during queue join: {e}")
+    # No-op for macOS 'say' command (blocking)
+    pass
 
 
 # Main interaction loop
@@ -173,9 +114,9 @@ def write():
     # After test commands, enter interactive mode
     print("\n--- Jarvis is now running in voice mode. Speak your command after the beep (Ctrl+C to exit) ---")
     recognizer = sr.Recognizer()
-    mic = sr.Microphone(device_index=MIC_INDEX)
     while True:
         try:
+            mic = sr.Microphone(device_index=MIC_INDEX)
             with mic as source:
                 print("Listening...")
                 recognizer.adjust_for_ambient_noise(source)
@@ -198,17 +139,18 @@ def write():
             if not output or not isinstance(output, str):
                 output = "Sorry, I did not understand that command."
             print(f"Jarvis: {output}")
+            # Ensure mic is fully released before TTS
+            del mic
+            time.sleep(0.2)  # Let CoreAudio settle
             speak_text(output)
             safe_tts_join()
-        except (KeyboardInterrupt, EOFError):
-            print("\nExiting Jarvis.")
-            break
-        except Exception as e:
-            print(f"Error processing command: {e}")
-    # Wait to ensure all TTS output is played before exiting
-    safe_tts_join()
-    if tts_worker.is_alive():
-        tts_worker.stop()
+            except (KeyboardInterrupt, EOFError):
+                print("\nExiting Jarvis.")
+                break
+            except Exception as e:
+                print(f"Error processing command: {e}")
+        # Wait to ensure all TTS output is played before exiting
+        safe_tts_join()
 
 # Ensure the test runs when script is executed
 if __name__ == "__main__":

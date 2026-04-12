@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "memory": {
+      "command": "java",
+      "args": [
+        "-jar",
+        "/Users/ahmedmansi/Library/Application Support/Code/User/globalStorage/allansantos-dv.mcp-memory-server/mcp-memory-server.jar",
+        "--workspace",
+        "${workspaceFolder}",
+        "--transport",
+        "both",
+        "--port",
+        "3000"
+      ]
+    }
+  }
+}

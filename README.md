@@ -9,7 +9,7 @@
 - 🗣 Voice-activated with wake word **"Jarvis"**
 - 🧠 Local language model (Qwen 3 via Ollama)
 - 🔧 Tool-calling with LangChain
-- 🔊 Text-to-speech responses via `pyttsx3`
+🔊 Text-to-speech responses via macOS `say` command
 - 🌍 Example tool: Get the current time in a given city
 - 🔐 Optional support for OpenAI API integration
 
@@ -29,7 +29,7 @@
 3. **Voice Command Handling**
    - Records the user’s spoken command
    - Passes the command to the LLM, which may invoke tools
-   - Responds using `pyttsx3` text-to-speech (with optional custom voice)
+   - Responds using macOS `say` text-to-speech (Samantha voice by default)
 
 4. **Timeout**
    - If the user is inactive for more than 30 seconds in conversation mode, it resets to wait for the wake word again.

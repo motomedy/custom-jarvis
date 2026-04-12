@@ -1,13 +1,7 @@
-import pyttsx3
+import subprocess
 
-def test_tts_variants():
-    engine = pyttsx3.init()
-    engine.setProperty('volume', 1.0)
-    for v in engine.getProperty('voices'):
-        if 'Samantha' in v.name:
-            engine.setProperty('voice', v.id)
-            break
-    print('Speaking at rate 140 (slow)')
+def test_tts():
+    subprocess.run(["say", "-v", "Samantha", "This is a test of the TTS system."])
     engine.setProperty('rate', 140)
     engine.say('This is Samantha at slow speed, rate one forty.')
     engine.runAndWait()

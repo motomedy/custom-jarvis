@@ -6,7 +6,6 @@ langchain-openai==0.3.28
 ollama==0.5.1
 openai==1.97.0
 python-dotenv==1.1.1
-pyttsx3==2.99
 pytz==2025.2
 SpeechRecognition==3.14.3
 PyAudio==0.2.14
