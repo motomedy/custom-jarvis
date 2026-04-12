@@ -144,13 +144,13 @@ def write():
             time.sleep(0.2)  # Let CoreAudio settle
             speak_text(output)
             safe_tts_join()
-            except (KeyboardInterrupt, EOFError):
-                print("\nExiting Jarvis.")
-                break
-            except Exception as e:
-                print(f"Error processing command: {e}")
-        # Wait to ensure all TTS output is played before exiting
-        safe_tts_join()
+        except (KeyboardInterrupt, EOFError):
+            print("\nExiting Jarvis.")
+            break
+        except Exception as e:
+            print(f"Error processing command: {e}")
+    # Wait to ensure all TTS output is played before exiting
+    safe_tts_join()
 
 # Ensure the test runs when script is executed
 if __name__ == "__main__":

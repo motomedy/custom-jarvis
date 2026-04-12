@@ -81,13 +81,11 @@ def run_jarvis():
     # from langchain_ollama import ChatOllama
     # from tools.get_time import get_time
     # import speech_recognition as sr
-    # import pyttsx3
     #
     # def speak(text):
     #     post("log", ("jarvis", text))
     #     post("status", "speaking")
-    #     engine.say(text)
-    #     engine.runAndWait()
+    #     # TTS handled in main.py using subprocess+say
     #     post("status", "idle")
     #
     # def listen():
