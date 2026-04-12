@@ -64,8 +64,47 @@ prompt = ChatPromptTemplate.from_messages([
 agent = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
 executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
+
 # --- Flask App ---
+from flask import abort
+import pathlib
+BASE_DIR = "/Users/ahmedmansi/Jarvis_ollama"
 app = Flask(__name__, static_folder="frontend/public", static_url_path="")
+def safe_path(rel_path):
+    # Prevent directory traversal
+    full = os.path.abspath(os.path.join(BASE_DIR, rel_path))
+    if not full.startswith(os.path.abspath(BASE_DIR)):
+        abort(403)
+    return full
+
+# List files in BASE_DIR
+@app.route("/api/files", methods=["GET"])
+def list_files():
+    files = []
+    for p in pathlib.Path(BASE_DIR).glob("**/*"):
+        if p.is_file():
+            files.append(str(p.relative_to(BASE_DIR)))
+    return {"files": files}
+
+# Read a file
+@app.route("/api/files/<path:relpath>", methods=["GET"])
+def read_file(relpath):
+    path = safe_path(relpath)
+    if not os.path.isfile(path):
+        abort(404)
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        content = f.read()
+    return {"content": content}
+
+# Write/overwrite a file
+@app.route("/api/files/<path:relpath>", methods=["POST"])
+def write_file(relpath):
+    path = safe_path(relpath)
+    data = request.get_json()
+    content = data.get("content", "")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    return {"status": "ok"}
 
 @app.route("/api/ask", methods=["POST"])
 def api_ask():
