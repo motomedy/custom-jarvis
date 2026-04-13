@@ -1,4 +1,3 @@
-
 # --- Imports ---
 import os
 import sys
@@ -222,6 +221,13 @@ def write():
             if not output or not isinstance(output, str):
                 output = "Sorry, I did not understand that command."
             print(f"Jarvis: {output}")
+            # --- Save memory: user command and assistant reply ---
+            try:
+                from memory import remember
+                remember(user_command, mem_type="user_command")
+                remember(output, mem_type="assistant_reply")
+            except Exception as mem_err:
+                print(f"[Memory Error] {mem_err}")
             del mic
             time.sleep(0.2)
             speak_text(output)
