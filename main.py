@@ -54,7 +54,7 @@ logging.basicConfig(level=os.environ.get("JARVIS_LOGLEVEL", "WARNING"))
 recognizer = sr.Recognizer()
 
 # --- LLM Agent ---
-llm = ChatOllama(model="qwen3:1.7b", reasoning=False)
+llm = ChatOllama(model="qwen3:0.5b", reasoning=False)  # Switched to smaller model for efficiency
 
 tools = [get_time, arp_scan_terminal, read_text_from_latest_image, duckduckgo_search_tool, matrix_mode, take_screenshot, add_todo, remove_todo, complete_todo, list_todos]
 prompt = ChatPromptTemplate.from_messages([
@@ -229,7 +229,7 @@ def write():
             except Exception as mem_err:
                 print(f"[Memory Error] {mem_err}")
             del mic
-            time.sleep(0.2)
+            time.sleep(1.0)  # Increased delay to reduce CPU load
             speak_text(output)
             safe_tts_join()
         except (KeyboardInterrupt, EOFError):
