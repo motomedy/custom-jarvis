@@ -13,6 +13,8 @@ import speech_recognition as sr
 from langchain_ollama import ChatOllama, OllamaLLM
 from langchain_core.messages import HumanMessage
 from langchain.agents import AgentExecutor, create_tool_calling_agent
+# memory context
+from memory import build_memory_context
 from langchain_core.prompts import ChatPromptTemplate
 # importing tools
 from tools.time import get_time
@@ -115,7 +117,10 @@ def api_ask():
         if not user_input:
             print("[API] Missing input!")
             return jsonify({"error": "Missing input"}), 400
-        response = executor.invoke({"input": user_input})
+        # Inject memory context
+        memory_context = build_memory_context(user_input)
+        full_input = f"[CONTEXT]\n{memory_context}\n[USER]\n{user_input}" if memory_context else user_input
+        response = executor.invoke({"input": full_input})
         print(f"[API] Agent response: {response}")
         output = response.get('output', '')
         return jsonify({"output": output})
