@@ -389,7 +389,7 @@ class StatusBar(tk.Frame):
         self._time_lbl.pack(side="right", padx=12)
         self._tick()
 
-        self._model_lbl = tk.Label(self, text="MODEL: qwen3:0.5b",
+        self._model_lbl = tk.Label(self, text="MODEL: qwen3:1.7b",
                                    bg=BORDER, fg=DIM, font=("Courier", 9))
         self._model_lbl.pack(side="right", padx=12)
 

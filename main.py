@@ -54,7 +54,7 @@ logging.basicConfig(level=os.environ.get("JARVIS_LOGLEVEL", "WARNING"))
 recognizer = sr.Recognizer()
 
 # --- LLM Agent ---
-llm = ChatOllama(model="qwen3:0.5b", reasoning=False)  # Switched to smaller model for efficiency
+llm = ChatOllama(model="qwen3:1.7b", reasoning=False)  # Reverted to available model
 
 tools = [get_time, arp_scan_terminal, read_text_from_latest_image, duckduckgo_search_tool, matrix_mode, take_screenshot, add_todo, remove_todo, complete_todo, list_todos]
 prompt = ChatPromptTemplate.from_messages([
