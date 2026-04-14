@@ -116,6 +116,13 @@ def api_ask():
         if not user_input:
             print("[API] Missing input!")
             return jsonify({"error": "Missing input"}), 400
+        # Automatic memory: store user's name if stated
+        import re
+        from memory import remember
+        name_match = re.match(r".*my name is ([A-Za-z0-9_\- ]+)[.!]?", user_input, re.IGNORECASE)
+        if name_match:
+            user_name = name_match.group(1).strip()
+            remember(f"User's name is {user_name}", mem_type="person", source="api_ask")
         # Inject memory context
         memory_context = build_memory_context(user_input)
         full_input = f"[CONTEXT]\n{memory_context}\n[USER]\n{user_input}" if memory_context else user_input
